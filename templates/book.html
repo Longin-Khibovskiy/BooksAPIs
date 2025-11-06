@@ -8,7 +8,15 @@
     <title>Book</title>
 </head>
 <body>
-{{.Name}}
-{{.Publisher}}
+<div class="book-card">
+    <h1>{{.Title}}</h1>
+    <img src="{{.Image}}" alt="{{.Title}}">
+    <h3>{{.Author}}</h3>
+    <p><strong>Publisher:</strong> {{.Publisher}}</p>
+    <p><strong>Rank:</strong> {{.Rank}}</p>
+    <p><strong>Description:</strong> {{.Description}}</p>
+    <p><a href="{{.AmazonURL}}" target="_blank">View on Amazon</a></p>
+    <a class="back" href="/books">← Back to list</a>
+</div>
 </body>
 </html>

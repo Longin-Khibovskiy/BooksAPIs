@@ -14,16 +14,24 @@ h1 {
     align-items: center;
 }
 .book {
-    width: 300px;
-    display: flex;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 2fr 2fr 1fr 1fr 1fr;
     justify-content: center;
-    gap: 12px;
-    border: 1px solid #656565;
-    padding: 8px;
+    gap: 0;
+    border: 1px solid rgba(182, 182, 182, 0.5);
+    padding: 0;
     border-radius: 4px;
-    box-shadow: 2px 2px rgba(128, 128, 128, 0.13);
     cursor: pointer;
 }
-.id {
-    font-weight: bold;
+
+.book p, .book a {
+    border: 1px solid rgba(182, 182, 182, 0.5);
+    padding: 4px;
+}
+.book p:nth-child(1) {
+    border-radius: 3px 0 0 3px;
+}
+.book a{
+    border-radius: 0 3px 3px 0;
 }
