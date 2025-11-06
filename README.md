@@ -5,3 +5,8 @@
 ```https://api.nytimes.com/svc/books/v3/lists/overview.json?api-key=yourkey```
 
 ```apikey in .env file```
+
+#### Добавленные паки:
+```terminaloutput
+go get github.com/joho/godotenv
+```

@@ -7,10 +7,12 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 )
 
 type Book struct {
@@ -44,18 +46,12 @@ type NYTResponse struct {
 var db *sql.DB
 
 func main() {
-	router := mux.NewRouter()
-	for i := 1; i <= 25; i++ {
-		books = append(books, Book{
-			ID:   i,
-			Name: "Name of book",
-			Author: &Author{
-				FirstName: "Ivan",
-				LastName:  "Ivanov",
-			},
-			Year: 2000 + i,
-		})
+	if err := godotenv.Load(); err != nil {
+		log.Fatal(".env file not found")
 	}
+	db = initDB()
+	defer db.Close()
+	router := mux.NewRouter()
 
 	fs := http.FileServer(http.Dir("stylesheets"))
 	router.PathPrefix("/stylesheets/").Handler(http.StripPrefix("/stylesheets/", fs))
@@ -72,6 +68,38 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
 
+func initDB() *sql.DB {
+	connStr := fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_NAME"),
+	)
+	db, err := sql.Open("postgres", connStr)
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = db.Exec(`
+	CREATE TABLE IF NOT EXISTS books (
+	    id serial PRIMARY KEY,
+	    title TEXT,
+	    author TEXT, 
+	    description TEXT, 
+	    publisher TEXT, 
+	    image TEXT,
+	    amazon_url TEXT,
+	    rang INT,
+	    created_at TIMESTAMP DEFAULT NOW()
+	);
+`)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return db
+}
+
 func getBooks(w http.ResponseWriter, _ *http.Request) {
 	tmplPath := filepath.Join("templates", "books.html")
 	tmpl, err := template.ParseFiles(tmplPath)
@@ -81,36 +109,6 @@ func getBooks(w http.ResponseWriter, _ *http.Request) {
 	}
 	w.Header().Set("Content-Type", "text/html")
 	tmpl.Execute(w, books)
-}
-
-func createBook(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	var book Book
-	if err := json.NewDecoder(r.Body).Decode(&book); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
-	book.ID = len(books) + 1
-	books = append(books, book)
-	json.NewEncoder(w).Encode(books)
-}
-
-func delBook(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	prms := mux.Vars(r)
-	idx, err := strconv.Atoi(prms["id"])
-	if err != nil {
-		http.Error(w, "invalid book ID", http.StatusBadRequest)
-		return
-	}
-	for i, book := range books {
-		if book.ID == idx {
-			books = append(books[:i], books[i+1:]...)
-			w.WriteHeader(http.StatusNoContent)
-			return
-		}
-	}
-	http.Error(w, "Book not found", http.StatusNotFound)
 }
 
 func getBookById(w http.ResponseWriter, r *http.Request) {
