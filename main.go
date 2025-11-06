@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -98,6 +99,46 @@ func initDB() *sql.DB {
 		log.Fatal(err)
 	}
 	return db
+}
+
+func updateBooksFromNYT(w http.ResponseWriter, r *http.Request) {
+	apikey := os.Getenv("API_KEY")
+	url := fmt.Sprintf("https://api.nytimes.com/svc/books/v3/lists/overview.json?api-key=%s", apikey)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		http.Error(w, "Failed to connect to API", http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		http.Error(w, "Error reading response", http.StatusInternalServerError)
+		return
+	}
+
+	var nytResp NYTResponse
+	if err := json.Unmarshal(body, &nytResp); err != nil {
+		http.Error(w, "Error parsing JSON", http.StatusInternalServerError)
+		return
+	}
+
+	db.Exec("DELETE FROM books")
+
+	for _, list := range nytResp.Results.Lists {
+		for _, b := range list.Books {
+			_, err := db.Exec(`
+				INSERT INTO books (title, author, description, publisher, image, amazon_url, rank)
+				VALUES ($1, $2, $3, $4, $5, $6, $7)
+			`, b.Title, b.Author, b.Description, b.Publisher, b.Image, b.AmazonURL, b.Rank)
+			if err != nil {
+				log.Println("Failed to add book:", err)
+			}
+		}
+	}
+	fmt.Println("Books are successfully added from NYT API")
+	http.Redirect(w, r, "/books", http.StatusFound)
 }
 
 func getBooks(w http.ResponseWriter, _ *http.Request) {
