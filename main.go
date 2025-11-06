@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -13,18 +14,34 @@ import (
 )
 
 type Book struct {
-	ID     int     `json:"id"`
-	Name   string  `json:"Name"`
-	Author *Author `json:"Author"`
-	Year   int     `json:"Year"`
+	ID          int
+	Title       string
+	Author      string
+	Description string
+	Publisher   string
+	Image       string
+	AmazonURL   string
+	Rank        int
 }
 
-type Author struct {
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
+type NYTResponse struct {
+	Results struct {
+		Lists []struct {
+			DisplayName string `json:"display_name"`
+			Books       []struct {
+				Title       string `json:"title"`
+				Author      string `json:"author"`
+				Description string `json:"description"`
+				Publisher   string `json:"publisher"`
+				Image       string `json:"image"`
+				AmazonURL   string `json:"amazon_product_url"`
+				Rank        int    `json:"rank"`
+			} `json:"books"`
+		} `json:"lists"`
+	} `json:"results"`
 }
 
-var books []Book
+var db *sql.DB
 
 func main() {
 	router := mux.NewRouter()
