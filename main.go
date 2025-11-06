@@ -4,13 +4,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"io"
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
-	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -61,8 +58,6 @@ func main() {
 		http.Redirect(w, r, "/books", http.StatusFound)
 	})
 	router.HandleFunc("/books", getBooks).Methods("GET")
-	router.HandleFunc("/books/create", createBook).Methods("POST")
-	router.HandleFunc("/books/delete/{id}", delBook).Methods("DELETE")
 	router.HandleFunc("/book/{id}", getBookById).Methods("GET")
 
 	fmt.Println("Server started on server http://localhost:8000")
@@ -141,31 +136,26 @@ func updateBooksFromNYT(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/books", http.StatusFound)
 }
 
-func getBooks(w http.ResponseWriter, _ *http.Request) {
-	tmplPath := filepath.Join("templates", "books.html")
-	tmpl, err := template.ParseFiles(tmplPath)
+func getAllBooks() ([]Book, error) {
+	rows, err := db.Query("SELECT * FROM books ORDER BY rank")
 	if err != nil {
-		http.Error(w, "Error template", http.StatusInternalServerError)
-		return
+		return nil, err
 	}
-	w.Header().Set("Content-Type", "text/html")
-	tmpl.Execute(w, books)
+	defer rows.Close()
+
+	var books []Book
+	for rows.Next() {
+		var b Book
+		rows.Scan(&b.ID, &b.Title, &b.Author, &b.Description, &b.Publisher, &b.Image, &b.AmazonURL, &b.Rank)
+		books = append(books, b)
+	}
+	return books, nil
+}
+
+func getBooks(w http.ResponseWriter, r *http.Request) {
+
 }
 
 func getBookById(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	prms := mux.Vars(r)
-	idx, err := strconv.Atoi(prms["id"])
-	if err != nil {
-		http.Error(w, "invalid book ID", http.StatusBadRequest)
-		return
-	}
-	for _, book := range books {
-		if book.ID == idx {
-			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(book)
-			return
-		}
-	}
-	http.Error(w, "Book not found", http.StatusNotFound)
+
 }
