@@ -4,13 +4,16 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 type Book struct {
@@ -33,7 +36,7 @@ type NYTResponse struct {
 				Author      string `json:"author"`
 				Description string `json:"description"`
 				Publisher   string `json:"publisher"`
-				Image       string `json:"image"`
+				Image       string `json:"book_image"`
 				AmazonURL   string `json:"amazon_product_url"`
 				Rank        int    `json:"rank"`
 			} `json:"books"`
@@ -49,6 +52,21 @@ func main() {
 	}
 	db = initDB()
 	defer db.Close()
+
+	createTable()
+
+	count := countBooks()
+	if count == 0 {
+		fmt.Println("Table is empty - download books from NYT API")
+		err := updateBooksFromNYT()
+		if err != nil {
+			log.Fatal("Error loading books:", err)
+		}
+		fmt.Println("Books successfully added")
+	} else {
+		fmt.Printf("In table %d books — skip update table\n", count)
+	}
+
 	router := mux.NewRouter()
 
 	fs := http.FileServer(http.Dir("stylesheets"))
@@ -77,49 +95,64 @@ func initDB() *sql.DB {
 	if err != nil {
 		log.Fatal(err)
 	}
-	_, err = db.Exec(`
+	return db
+}
+
+func createTable() {
+	_, err := db.Exec(`
 	CREATE TABLE IF NOT EXISTS books (
-	    id serial PRIMARY KEY,
+	    id SERIAL PRIMARY KEY,
 	    title TEXT,
-	    author TEXT, 
-	    description TEXT, 
-	    publisher TEXT, 
+	    author TEXT,
+	    description TEXT,
+	    publisher TEXT,
 	    image TEXT,
 	    amazon_url TEXT,
-	    rang INT,
+	    rank INT,
 	    created_at TIMESTAMP DEFAULT NOW()
 	);
 `)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Error creating table:", err)
 	}
-	return db
 }
 
-func updateBooksFromNYT(w http.ResponseWriter, r *http.Request) {
-	apikey := os.Getenv("API_KEY")
-	url := fmt.Sprintf("https://api.nytimes.com/svc/books/v3/lists/overview.json?api-key=%s", apikey)
+func countBooks() int {
+	var count int
+	err := db.QueryRow("SELECT COUNT(*) FROM books").Scan(&count)
+	if err != nil {
+		log.Println("Error in counting books:", err)
+	}
+	return count
+}
 
+func updateBooksFromNYT() error {
+	apikey := os.Getenv("API_KEY")
+	if apikey == "" {
+		return fmt.Errorf("API_KEY not find in .env")
+	}
+
+	url := fmt.Sprintf("https://api.nytimes.com/svc/books/v3/lists/overview.json?api-key=%s", apikey)
 	resp, err := http.Get(url)
 	if err != nil {
-		http.Error(w, "Failed to connect to API", http.StatusInternalServerError)
-		return
+		return fmt.Errorf("failed to connect to the API: %v", err)
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		http.Error(w, "Error reading response", http.StatusInternalServerError)
-		return
+		return fmt.Errorf("error reading response: %v", err)
 	}
 
 	var nytResp NYTResponse
 	if err := json.Unmarshal(body, &nytResp); err != nil {
-		http.Error(w, "Error parsing JSON", http.StatusInternalServerError)
-		return
+		return fmt.Errorf("error JSON: %v", err)
 	}
 
-	db.Exec("DELETE FROM books")
+	_, err = db.Exec("DELETE FROM books")
+	if err != nil {
+		return fmt.Errorf("error clear table: %v", err)
+	}
 
 	for _, list := range nytResp.Results.Lists {
 		for _, b := range list.Books {
@@ -128,16 +161,15 @@ func updateBooksFromNYT(w http.ResponseWriter, r *http.Request) {
 				VALUES ($1, $2, $3, $4, $5, $6, $7)
 			`, b.Title, b.Author, b.Description, b.Publisher, b.Image, b.AmazonURL, b.Rank)
 			if err != nil {
-				log.Println("Failed to add book:", err)
+				log.Println("Error add book:", err)
 			}
 		}
 	}
-	fmt.Println("Books are successfully added from NYT API")
-	http.Redirect(w, r, "/books", http.StatusFound)
+	return nil
 }
 
 func getAllBooks() ([]Book, error) {
-	rows, err := db.Query("SELECT * FROM books ORDER BY rank")
+	rows, err := db.Query("SELECT id, title, author, description, publisher, image, amazon_url, rank FROM books ORDER BY rank")
 	if err != nil {
 		return nil, err
 	}
@@ -146,16 +178,43 @@ func getAllBooks() ([]Book, error) {
 	var books []Book
 	for rows.Next() {
 		var b Book
-		rows.Scan(&b.ID, &b.Title, &b.Author, &b.Description, &b.Publisher, &b.Image, &b.AmazonURL, &b.Rank)
+		if err := rows.Scan(&b.ID, &b.Title, &b.Author, &b.Description, &b.Publisher, &b.Image, &b.AmazonURL, &b.Rank); err != nil {
+			log.Println("Error scanning:", err)
+			continue
+		}
 		books = append(books, b)
 	}
 	return books, nil
 }
 
-func getBooks(w http.ResponseWriter, r *http.Request) {
+func getBookId(id int) (*Book, error) {
+	var b Book
+	err := db.QueryRow("SELECT id, title, author, description, publisher, image, amazon_url, rank FROM books WHERE id=$1", id).
+		Scan(&b.ID, &b.Title, &b.Author, &b.Description, &b.Publisher, &b.Image, &b.AmazonURL, &b.Rank)
+	if err != nil {
+		return nil, err
+	}
+	return &b, nil
+}
 
+func getBooks(w http.ResponseWriter, _ *http.Request) {
+	tmpl, _ := template.ParseFiles("templates/books.html")
+	books, err := getAllBooks()
+	if err != nil {
+		http.Error(w, "Error database", http.StatusInternalServerError)
+		return
+	}
+	tmpl.Execute(w, books)
 }
 
 func getBookById(w http.ResponseWriter, r *http.Request) {
-
+	prms := mux.Vars(r)
+	id, _ := strconv.Atoi(prms["id"])
+	book, err := getBookId(id)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	tmpl, _ := template.ParseFiles("templates/book.html")
+	tmpl.Execute(w, book)
 }

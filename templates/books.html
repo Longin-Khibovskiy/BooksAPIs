@@ -12,11 +12,13 @@
 <h1>Список книг</h1>
 {{range .}}
 <div class="cont">
-    <div class="book {{.ID}}" onclick="window.location.href = '/book/{{.ID}}'">
-        <p class="id">{{.ID}}</p>
-        {{.Name}}
-        <p class="author">{{.Author.FirstName}} {{.Author.LastName}}</p>
-        {{.Year}}y.
+    <div class="book" onclick="window.location.href='/book/{{.ID}}'">
+<!--        <img src="{{.Image}}" alt="{{.Title}}" style="width:150px;height:auto;">-->
+        <p>{{.Title}}</p>
+        <p class="author">{{.Author}}</p>
+        <p>{{.Publisher}}</p>
+        <p>Rank: {{.Rank}}</p>
+        <a href="{{.AmazonURL}}" target="_blank">Buy on Amazon</a>
     </div>
 </div>
 {{end}}
