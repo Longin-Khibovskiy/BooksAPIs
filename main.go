@@ -16,6 +16,11 @@ import (
 	_ "github.com/lib/pq"
 )
 
+type Link struct {
+	Name string
+	Url  string
+}
+
 type Book struct {
 	ID          int
 	Title       string
@@ -25,6 +30,7 @@ type Book struct {
 	Image       string
 	AmazonURL   string
 	Rank        int
+	Links       []Link
 }
 
 type NYTResponse struct {
@@ -39,6 +45,10 @@ type NYTResponse struct {
 				Image       string `json:"book_image"`
 				AmazonURL   string `json:"amazon_product_url"`
 				Rank        int    `json:"rank"`
+				BuyLinks    []struct {
+					Name string `json:"name"`
+					Url  string `json:"url"`
+				} `json:"buy_links"`
 			} `json:"books"`
 		} `json:"lists"`
 	} `json:"results"`
@@ -115,6 +125,18 @@ func createTable() {
 	if err != nil {
 		log.Fatal("Error creating table:", err)
 	}
+
+	_, err = db.Exec(`
+	CREATE TABLE IF NOT EXISTS book_links (
+	    id SERIAL PRIMARY KEY,
+	    book_id INT REFERENCES books(id) ON DELETE CASCADE,
+	    name TEXT,
+	    url TEXT
+	);
+`)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func countBooks() int {
@@ -153,15 +175,31 @@ func updateBooksFromNYT() error {
 	if err != nil {
 		return fmt.Errorf("error clear table: %v", err)
 	}
+	_, err = db.Exec("DELETE FROM book_links")
+	if err != nil {
+		return fmt.Errorf("error clear table: %v", err)
+	}
 
 	for _, list := range nytResp.Results.Lists {
 		for _, b := range list.Books {
-			_, err := db.Exec(`
+			var bookID int
+			err := db.QueryRow(`
 				INSERT INTO books (title, author, description, publisher, image, amazon_url, rank)
 				VALUES ($1, $2, $3, $4, $5, $6, $7)
-			`, b.Title, b.Author, b.Description, b.Publisher, b.Image, b.AmazonURL, b.Rank)
+				RETURNING id
+			`, b.Title, b.Author, b.Description, b.Publisher, b.Image, b.AmazonURL, b.Rank).Scan(&bookID)
 			if err != nil {
 				log.Println("Error add book:", err)
+				continue
+			}
+			for _, link := range b.BuyLinks {
+				_, err := db.Exec(`
+				INSERT INTO book_links (book_id, name, url)
+				VALUES ($1, $2, $3)
+			`, bookID, link.Name, link.Url)
+				if err != nil {
+					log.Println("Failed to insert link:", err)
+				}
 			}
 		}
 	}
@@ -169,7 +207,7 @@ func updateBooksFromNYT() error {
 }
 
 func getAllBooks() ([]Book, error) {
-	rows, err := db.Query("SELECT id, title, author, description, publisher, image, amazon_url, rank FROM books ORDER BY rank")
+	rows, err := db.Query("SELECT id, title, author, description, publisher, image, amazon_url, rank FROM books ORDER BY ID")
 	if err != nil {
 		return nil, err
 	}
@@ -189,11 +227,35 @@ func getAllBooks() ([]Book, error) {
 
 func getBookId(id int) (*Book, error) {
 	var b Book
-	err := db.QueryRow("SELECT id, title, author, description, publisher, image, amazon_url, rank FROM books WHERE id=$1", id).
-		Scan(&b.ID, &b.Title, &b.Author, &b.Description, &b.Publisher, &b.Image, &b.AmazonURL, &b.Rank)
+	err := db.QueryRow(`
+		SELECT id, title, author, description, publisher, image, amazon_url, rank
+		FROM books
+		WHERE id=$1
+	`, id).Scan(&b.ID, &b.Title, &b.Author, &b.Description, &b.Publisher, &b.Image, &b.AmazonURL, &b.Rank)
 	if err != nil {
 		return nil, err
 	}
+
+	rows, err := db.Query(`SELECT name, url FROM book_links WHERE book_id=$1`, id)
+	if err != nil {
+		log.Println("Error getting links:", err)
+		return &b, nil
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var link Link
+		if err := rows.Scan(&link.Name, &link.Url); err != nil {
+			log.Println("Error scanning link:", err)
+			continue
+		}
+		b.Links = append(b.Links, link)
+	}
+
+	if err = rows.Err(); err != nil {
+		log.Println("Rows error:", err)
+	}
+
 	return &b, nil
 }
 

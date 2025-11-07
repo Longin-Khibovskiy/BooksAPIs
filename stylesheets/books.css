@@ -35,3 +35,12 @@ h1 {
 .book a{
     border-radius: 0 3px 3px 0;
 }
+.id {
+    margin-right: 4px;
+    font-size: 8px;
+}
+
+li.links a {
+    color: #000;
+    text-decoration: none;
+}
