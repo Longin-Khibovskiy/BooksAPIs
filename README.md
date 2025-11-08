@@ -12,3 +12,16 @@ go get github.com/gorilla/mux
 go get github.com/joho/godotenv
 go get github.com/lib/pq
 ```
+### Запуск проекта
+```terminaloutput
+# 1 раз при первом запуске
+echo "API_KEY=your_api_key_NYT" > .env
+echo "DB_PORT=5432" >> .env
+echo "DB_USER=user" >> .env
+echo "DB_PASSWORD=password" >> .env
+echo "DB_NAME=booksdb" >> .env
+docker compose --profile local build
+
+# запуск проекта
+docker compose --profile local up
+```
