@@ -20,8 +20,20 @@ echo "DB_PORT=5432" >> .env
 echo "DB_USER=user" >> .env
 echo "DB_PASSWORD=password" >> .env
 echo "DB_NAME=booksdb" >> .env
-docker compose --profile local build
+docker compose build
 
 # запуск проекта
-docker compose --profile local up
+docker compose up
+```
+
+### Дополнительные команды
+```terminaloutput
+# Остановить контейнеры
+docker compose down
+# Показать логи всех сервисов
+docker compose logs
+# Посмотреть статус контейнеров
+docker compose ps
+# Перезапустить контейнеры
+docker compose restart
 ```

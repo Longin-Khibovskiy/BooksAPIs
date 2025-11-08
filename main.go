@@ -58,7 +58,7 @@ var db *sql.DB
 
 func main() {
 	if err := godotenv.Load(); err != nil {
-		log.Fatal(".env file not found")
+		log.Println("No .env file found, using environment variables")
 	}
 	db = initDB()
 	defer db.Close()
@@ -109,34 +109,7 @@ func initDB() *sql.DB {
 }
 
 func createTable() {
-	_, err := db.Exec(`
-	CREATE TABLE IF NOT EXISTS books (
-	    id SERIAL PRIMARY KEY,
-	    title TEXT,
-	    author TEXT,
-	    description TEXT,
-	    publisher TEXT,
-	    image TEXT,
-	    amazon_url TEXT,
-	    rank INT,
-	    created_at TIMESTAMP DEFAULT NOW()
-	);
-`)
-	if err != nil {
-		log.Fatal("Error creating table:", err)
-	}
-
-	_, err = db.Exec(`
-	CREATE TABLE IF NOT EXISTS book_links (
-	    id SERIAL PRIMARY KEY,
-	    book_id INT REFERENCES books(id) ON DELETE CASCADE,
-	    name TEXT,
-	    url TEXT
-	);
-`)
-	if err != nil {
-		log.Fatal(err)
-	}
+	log.Println("Tables are managed via migrations in migrations/ folder")
 }
 
 func countBooks() int {
