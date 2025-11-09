@@ -1,28 +1,22 @@
 package handlers
 
 import (
-	"html/template"
 	"net/http"
 	"strconv"
 
 	"example.com/m/v2/internal/database"
+	"example.com/m/v2/internal/views"
 	"github.com/gorilla/mux"
 )
 
-func GetBooks(w http.ResponseWriter, _ *http.Request) {
-	tmpl, err := template.ParseFiles("templates/books.html")
-	if err != nil {
-		http.Error(w, "Error loading template", http.StatusInternalServerError)
-		return
-	}
-
+func GetBooks(w http.ResponseWriter, r *http.Request) {
 	books, err := database.GetAllBooks()
 	if err != nil {
 		http.Error(w, "Error database", http.StatusInternalServerError)
 		return
 	}
 
-	tmpl.Execute(w, books)
+	views.BooksList(books).Render(r.Context(), w)
 }
 
 func GetBookByID(w http.ResponseWriter, r *http.Request) {
@@ -39,13 +33,7 @@ func GetBookByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl, err := template.ParseFiles("templates/book.html")
-	if err != nil {
-		http.Error(w, "Error loading template", http.StatusInternalServerError)
-		return
-	}
-
-	tmpl.Execute(w, book)
+	views.BookDetail(book).Render(r.Context(), w)
 }
 
 func RedirectToBooks(w http.ResponseWriter, r *http.Request) {

@@ -1,0 +1,42 @@
+package views
+
+import (
+	"example.com/m/v2/internal/models"
+	"strconv"
+)
+
+templ BookDetail(book *models.Book) {
+	@Layout(book.Title) {
+		<div class="book-detail">
+			<h1>{ book.Title }</h1>
+			<p class="author">Автор: { book.Author }</p>
+			<p class="publisher">Издатель: { book.Publisher }</p>
+			<p class="rank">Рейтинг: { strconv.Itoa(book.Rank) }</p>
+			
+			if book.Image != "" {
+				<img src={ book.Image } alt={ book.Title }/>
+			}
+			
+			<p class="description">{ book.Description }</p>
+			
+			if len(book.Links) > 0 {
+				<div class="links">
+					<h3>Где купить:</h3>
+					<ul>
+						for _, link := range book.Links {
+							<li>
+								<a href={ templ.SafeURL(link.Url) } target="_blank">{ link.Name }</a>
+							</li>
+						}
+					</ul>
+				</div>
+			}
+			
+			if book.AmazonURL != "" {
+				<a href={ templ.SafeURL(book.AmazonURL) } target="_blank" class="amazon-link">Купить на Amazon</a>
+			}
+			
+			<a href="/books" class="back-link">← Назад к списку</a>
+		</div>
+	}
+}

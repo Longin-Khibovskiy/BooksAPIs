@@ -1,0 +1,24 @@
+package views
+
+import (
+	"example.com/m/v2/internal/models"
+	"strconv"
+	"fmt"
+)
+
+templ BooksList(books []models.Book) {
+	@Layout("Books") {
+		<h1>Список книг</h1>
+		<div class="cont">
+			for _, book := range books {
+				<a href={ templ.URL(fmt.Sprintf("/book/%d", book.ID)) } style="text-decoration: none; color: inherit;">
+					<div class="book_cont">
+						<p class="book_title">{ book.Title }</p>
+						<p class="author">{ book.Author }</p>
+						<p class="publisher">{ book.Publisher }</p>
+					</div>
+				</a>
+			}
+		</div>
+	}
+}

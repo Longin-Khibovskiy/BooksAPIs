@@ -39,7 +39,6 @@ services:
       DB_NAME: ${DB_NAME}
       API_KEY: ${API_KEY}
     volumes:
-      - ./templates:/app/templates
       - ./stylesheets:/app/stylesheets
     restart: unless-stopped
     logging:

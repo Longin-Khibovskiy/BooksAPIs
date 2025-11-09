@@ -11,6 +11,7 @@
 go get github.com/gorilla/mux
 go get github.com/joho/godotenv
 go get github.com/lib/pq
+go get github.com/a-h/templ
 ```
 ### Запуск проекта
 ```terminaloutput
