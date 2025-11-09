@@ -77,3 +77,12 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	})
 	w.Write([]byte(`{"message": "Successfully entrance"}`))
 }
+
+func LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:    "auth_token",
+		Value:   "",
+		Expires: time.Now().Add(-1 * time.Hour),
+	})
+	w.Write([]byte(`{"message": "You have been logged out"}`))
+}
