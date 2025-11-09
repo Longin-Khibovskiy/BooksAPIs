@@ -12,6 +12,7 @@ go get github.com/gorilla/mux
 go get github.com/joho/godotenv
 go get github.com/lib/pq
 go get golang.org/x/crypto/bcrypt
+go get github.com/golang-jwt/jwt/v5
 
 ```
 ### Запуск проекта
