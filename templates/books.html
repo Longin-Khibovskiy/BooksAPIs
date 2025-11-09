@@ -9,19 +9,22 @@
     <link rel="stylesheet" href="/stylesheets/books.css">
 </head>
 <body>
-<h1>Список книг</h1>
-{{range .}}
+<h1>Books of New York Times</h1>
 <div class="cont">
-    <div class="book" onclick="window.location.href='/book/{{.ID}}'">
-<!--        <img src="{{.Image}}" alt="{{.Title}}" style="width:150px;height:auto;">-->
-
-        <p><span class="id">{{.ID}}</span>{{.Title}}</p>
-        <p class="author">{{.Author}}</p>
-        <p>{{.Publisher}}</p>
-        <p>Rank: {{.Rank}}</p>
-        <a href="{{.AmazonURL}}">Buy on Amazon</a>
+    <div class="book">
+        {{range .}}
+        <div class="book_cont">
+            <div class="img_cont">
+                <img src="{{.Image}}" alt="{{.Title}}" style="width:50%;height:70%;">
+            </div>
+            <p class="book_title">{{.Title}}</p>
+            <p class="book_author">Author – {{.Author}}</p>
+            <p class="book_publisher">Publisher – {{.Publisher}}</p>
+            <p class="book_rank">Rank – {{.Rank}}</p>
+        </div>
+        {{end}}
     </div>
 </div>
-{{end}}
 </body>
 </html>
+<!--onclick="window.location.href='/book/{{.ID}}'"-->

@@ -3,44 +3,39 @@
     margin: 0;
     box-sizing: border-box;
 }
+
 h1 {
     text-align: center;
 }
+
 .cont {
-    width: 100%;
-    padding: 8px 32px;
     display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-.book {
-    width: 100%;
-    display: grid;
-    grid-template-columns: 2fr 2fr 1fr 1fr 1fr;
     justify-content: center;
-    gap: 0;
-    border: 1px solid rgba(182, 182, 182, 0.5);
-    padding: 0;
-    border-radius: 4px;
-    cursor: pointer;
+    margin: 32px;
 }
 
-.book p, .book a {
-    border: 1px solid rgba(182, 182, 182, 0.5);
+.book {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    row-gap: 12px;
+    column-gap: 12px;
+}
+
+.book_cont {
+    border: 1px solid rgba(128, 128, 128, 0.5);
+    border-radius: 12px;
     padding: 4px;
 }
-.book p:nth-child(1) {
-    border-radius: 3px 0 0 3px;
-}
-.book a{
-    border-radius: 0 3px 3px 0;
-}
-.id {
-    margin-right: 4px;
-    font-size: 8px;
-}
 
-li.links a {
-    color: #000;
-    text-decoration: none;
+.img_cont {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+.book_title {
+    font-weight: bold;
+    margin: 8px 0;
+}
+.book_author, .book_publisher, .book_rank {
+    margin: 4px;
 }
