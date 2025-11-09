@@ -17,5 +17,17 @@ CREATE TABLE IF NOT EXISTS book_links (
     url TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    email TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    name TEXT,
+    role TEXT DEFAULT 'user',
+    is_active BOOLEAN DEFAULT true,
+    is_verified BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
 CREATE INDEX IF NOT EXISTS idx_books_rank ON books(rank);
 CREATE INDEX IF NOT EXISTS idx_book_links_book_id ON book_links(book_id);
