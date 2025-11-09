@@ -6,14 +6,14 @@
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Books</title>
-    <link rel="stylesheet" href="/stylesheets/books.css">
+    <link rel="stylesheet" href="/static/books.css">
 </head>
 <body>
 <h1>Books of New York Times</h1>
 <div class="cont">
     <div class="book">
         {{range .}}
-        <div class="book_cont">
+        <div class="book_cont" onclick="window.location.href='/book/{{.ID}}'">
             <div class="img_cont">
                 <img src="{{.Image}}" alt="{{.Title}}" style="width:50%;height:70%;">
             </div>
@@ -27,4 +27,3 @@
 </div>
 </body>
 </html>
-<!--onclick="window.location.href='/book/{{.ID}}'"-->

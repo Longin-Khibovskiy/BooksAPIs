@@ -35,8 +35,8 @@ func main() {
 
 	router := mux.NewRouter()
 
-	fs := http.FileServer(http.Dir("stylesheets"))
-	router.PathPrefix("/stylesheets/").Handler(http.StripPrefix("/stylesheets/", fs))
+	fs := http.FileServer(http.Dir("internal/views/static"))
+	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
 
 	router.HandleFunc("/", handlers.RedirectToBooks)
 	router.HandleFunc("/books", handlers.GetBooks).Methods("GET")

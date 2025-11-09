@@ -17,8 +17,7 @@ RUN apk --no-cache add ca-certificates postgresql-client tzdata && \
     adduser -D -u 1000 -G appuser appuser
 
 COPY --from=builder /app/main .
-COPY templates ./templates
-COPY stylesheets ./stylesheets
+COPY internal/views ./internal/views
 COPY migrations ./migrations
 COPY entrypoint.sh .
 

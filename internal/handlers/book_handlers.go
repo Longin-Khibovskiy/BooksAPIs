@@ -10,7 +10,7 @@ import (
 )
 
 func GetBooks(w http.ResponseWriter, _ *http.Request) {
-	tmpl, err := template.ParseFiles("templates/books.html")
+	tmpl, err := template.ParseFiles("internal/views/books.html")
 	if err != nil {
 		http.Error(w, "Error loading template", http.StatusInternalServerError)
 		return
@@ -39,7 +39,7 @@ func GetBookByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl, err := template.ParseFiles("templates/book.html")
+	tmpl, err := template.ParseFiles("internal/views/book.html")
 	if err != nil {
 		http.Error(w, "Error loading template", http.StatusInternalServerError)
 		return
