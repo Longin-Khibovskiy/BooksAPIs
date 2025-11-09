@@ -11,6 +11,8 @@
 go get github.com/gorilla/mux
 go get github.com/joho/godotenv
 go get github.com/lib/pq
+go get golang.org/x/crypto/bcrypt
+
 ```
 ### Запуск проекта
 ```terminaloutput
