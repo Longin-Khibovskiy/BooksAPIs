@@ -37,22 +37,15 @@ func main() {
 	router := mux.NewRouter()
 
 	// Auth & Reg
-	//router.HandleFunc("/register", auth.RegisterHandler).Methods("POST")
-	//router.HandleFunc("/login", auth.LoginHandler).Methods("POST")
-	//router.HandleFunc("/logout", auth.LogoutHandler).Methods("POST")
-
 	router.HandleFunc("/register", auth.RegisterPage).Methods("GET")
 	router.HandleFunc("/register", auth.RegisterSubmit).Methods("POST")
 	router.HandleFunc("/login", auth.LoginPage).Methods("GET")
 	router.HandleFunc("/login", auth.LoginSubmit).Methods("POST")
 	router.HandleFunc("/logout", auth.LogoutHandler).Methods("POST")
 
-	api := router.PathPrefix("/api").Subrouter()
-	api.Use(auth.AuthMiddleware)
-	api.HandleFunc("/profile", func(w http.ResponseWriter, r *http.Request) {
-		id := r.Context().Value("userID").(int)
-		w.Write([]byte(fmt.Sprintf("Your ID: %d", id)))
-	}).Methods("GET")
+	protected := router.PathPrefix("").Subrouter()
+	protected.Use(auth.AuthMiddleware)
+	protected.HandleFunc("/profile", auth.ProfilePage).Methods("GET")
 
 	fs := http.FileServer(http.Dir("internal/views/static"))
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))

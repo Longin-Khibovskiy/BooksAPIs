@@ -12,21 +12,56 @@ import (
 
 var registerTmpl = template.Must(template.ParseFiles("internal/views/layout.html", "internal/views/register.html"))
 var loginTmpl = template.Must(template.ParseFiles("internal/views/layout.html", "internal/views/login.html"))
+var profileTmpl = template.Must(template.ParseFiles("internal/views/layout.html", "internal/views/profile.html"))
 
 type FormData map[string]interface{}
 
 type PageData struct {
 	Flash string
 	Form  FormData
+	User  interface{}
+}
+
+func ProfilePage(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value("userID")
+	if userID == nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	var user struct {
+		ID        int
+		Name      string
+		Email     string
+		CreatedAt time.Time
+	}
+
+	err := database.DB.QueryRow(`
+		SELECT id, name, email, created_at 
+		FROM users 
+		WHERE id = $1
+	`, userID).Scan(&user.ID, &user.Name, &user.Email, &user.CreatedAt)
+
+	if err != nil {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	data := PageData{
+		User: user,
+	}
+
+	profileTmpl.ExecuteTemplate(w, "layout.html", data)
 }
 
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
 		Name:    "auth_token",
 		Value:   "",
+		Path:    "/",
 		Expires: time.Now().Add(-1 * time.Hour),
 	})
-	w.Write([]byte(`{"message": "You have been logged out"}`))
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
 func RegisterPage(w http.ResponseWriter, r *http.Request) {

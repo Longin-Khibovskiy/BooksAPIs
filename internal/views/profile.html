@@ -1,0 +1,18 @@
+{{ define "title" }}Profile{{ end }}
+
+{{ define "content" }}
+<h1>Profile</h1>
+
+<div class="profile-info">
+    <p><strong>ID:</strong> {{ .User.ID }}</p>
+    <p><strong>Name:</strong> {{ .User.Name }}</p>
+    <p><strong>Email:</strong> {{ .User.Email }}</p>
+    <p><strong>Registered:</strong> {{ .User.CreatedAt }}</p>
+</div>
+
+<form action="/logout" method="post">
+    <button type="submit" class="logout-btn">Logout</button>
+</form>
+
+<p><a href="/books">← Back to books</a></p>
+{{ end }}
