@@ -172,6 +172,14 @@ func RegisterSubmit(w http.ResponseWriter, r *http.Request) {
 }
 
 func LoginPage(w http.ResponseWriter, r *http.Request) {
+	data := PageData{}
+	if r.URL.Query().Get("registered") == "1" {
+		data.Flash = "Successfully registered. Enter email and password"
+	}
+	templates.ExecuteTemplate(w, "login.html", data)
+}
+
+func LoginSubmit(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
