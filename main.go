@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"example.com/m/v2/internal/api"
+	"example.com/m/v2/internal/auth"
 	"example.com/m/v2/internal/database"
 	"example.com/m/v2/internal/handlers"
 	"github.com/gorilla/mux"
@@ -34,6 +35,18 @@ func main() {
 	}
 
 	router := mux.NewRouter()
+
+	// Auth & Reg
+	router.HandleFunc("/register", auth.RegisterHandler).Methods("POST")
+	router.HandleFunc("/login", auth.LoginHandler).Methods("POST")
+	router.HandleFunc("/logout", auth.LogoutHandler).Methods("POST")
+
+	api := router.PathPrefix("/api").Subrouter()
+	api.Use(auth.AuthMiddleware)
+	api.HandleFunc("/me", func(w http.ResponseWriter, r *http.Request) {
+		id := r.Context().Value("userID").(int)
+		w.Write([]byte(fmt.Sprintf("Your ID: %d", id)))
+	}).Methods("GET")
 
 	fs := http.FileServer(http.Dir("internal/views/static"))
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
