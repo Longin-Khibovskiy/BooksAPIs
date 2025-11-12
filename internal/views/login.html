@@ -1,5 +1,4 @@
 {{ define "title" }}Authorization{{ end }}
-{{ template "layout.html" . }}
 
 {{ define "content" }}
 <h1>Sign in</h1>
@@ -15,7 +14,9 @@
         <input type="checkbox" name="remember" {{ if .Form.Remember }}checked{{ end }}>
         Remember me
     </label>
+
+    <button type="submit">Sign in</button>
 </form>
 
-<p>No account?<a href="/register">Sign up</a></p>
+<p>No account? <a href="/register">Sign up</a></p>
 {{ end }}

@@ -10,11 +10,8 @@ import (
 	"example.com/m/v2/internal/utils"
 )
 
-var templates = template.Must(template.ParseFiles(
-	"internal/views/layout.html",
-	"internal/views/register.html",
-	"internal/views/login.html",
-))
+var registerTmpl = template.Must(template.ParseFiles("internal/views/layout.html", "internal/views/register.html"))
+var loginTmpl = template.Must(template.ParseFiles("internal/views/layout.html", "internal/views/login.html"))
 
 type FormData map[string]interface{}
 
@@ -34,7 +31,7 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 
 func RegisterPage(w http.ResponseWriter, r *http.Request) {
 	data := PageData{}
-	templates.ExecuteTemplate(w, "register.html", data)
+	registerTmpl.ExecuteTemplate(w, "layout.html", data)
 }
 
 func RegisterSubmit(w http.ResponseWriter, r *http.Request) {
@@ -49,14 +46,14 @@ func RegisterSubmit(w http.ResponseWriter, r *http.Request) {
 	passwordConfirm := r.FormValue("password_confirm")
 
 	if password != passwordConfirm {
-		templates.ExecuteTemplate(w, "register.html", PageData{
+		registerTmpl.ExecuteTemplate(w, "layout.html", PageData{
 			Flash: "Passwords don't match",
 			Form:  FormData{"Name": name, "Email": email},
 		})
 		return
 	}
 	if len(password) < 8 {
-		templates.ExecuteTemplate(w, "register.html", PageData{
+		registerTmpl.ExecuteTemplate(w, "layout.html", PageData{
 			Flash: "The password must contain at least 8 characters",
 			Form:  FormData{"Name": name, "Email": email},
 		})
@@ -77,7 +74,7 @@ func RegisterSubmit(w http.ResponseWriter, r *http.Request) {
 	`, email, hash, name, time.Now()).Scan(&UserID)
 
 	if err != nil {
-		templates.ExecuteTemplate(w, "register.html", PageData{
+		registerTmpl.ExecuteTemplate(w, "layout.html", PageData{
 			Flash: fmt.Sprintf("Failed to create user: %v", err),
 			Form:  FormData{"Name": name, "Email": email},
 		})
@@ -106,7 +103,7 @@ func LoginPage(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Query().Get("registered") == "1" {
 		data.Flash = "Successfully registered. Enter email and password"
 	}
-	templates.ExecuteTemplate(w, "login.html", data)
+	loginTmpl.ExecuteTemplate(w, "layout.html", data)
 }
 
 func LoginSubmit(w http.ResponseWriter, r *http.Request) {
@@ -122,7 +119,7 @@ func LoginSubmit(w http.ResponseWriter, r *http.Request) {
 	var hash string
 	err := database.DB.QueryRow("SELECT id, password_hash FROM users WHERE email=$1", email).Scan(&id, &hash)
 	if err != nil {
-		templates.ExecuteTemplate(w, "login.html", PageData{
+		loginTmpl.ExecuteTemplate(w, "layout.html", PageData{
 			Flash: "Invalid email or password",
 			Form:  FormData{"Email": email},
 		})
@@ -130,7 +127,7 @@ func LoginSubmit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !utils.CheckPasswordHash(password, hash) {
-		templates.ExecuteTemplate(w, "login.html", PageData{
+		loginTmpl.ExecuteTemplate(w, "layout.html", PageData{
 			Flash: "Invalid email or password",
 			Form:  FormData{"Email": email},
 		})
