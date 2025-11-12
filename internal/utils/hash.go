@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"net/http"
 	"os"
 	"time"
 
@@ -29,16 +28,4 @@ func CreateJWT(userID int) (string, error) {
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(jwtSecret)
-}
-
-func SetAuthCookie(w http.ResponseWriter, token string) {
-	cookie := &http.Cookie{
-		Name:     "auth_token",
-		Value:    token,
-		Expires:  time.Now().Add(24 * time.Hour),
-		HttpOnly: true,
-		Path:     "/",
-		SameSite: http.SameSiteLaxMode,
-	}
-	http.SetCookie(w, cookie)
 }
