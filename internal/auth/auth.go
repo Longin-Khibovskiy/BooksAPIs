@@ -25,7 +25,7 @@ type PageData struct {
 func ProfilePage(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value("userID")
 	if userID == nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		http.Error(w, "Not authenticated", http.StatusUnauthorized)
 		return
 	}
 
@@ -33,25 +33,44 @@ func ProfilePage(w http.ResponseWriter, r *http.Request) {
 		ID        int
 		Name      string
 		Email     string
+		AvatarURL string
 		CreatedAt time.Time
 	}
 
+	defaultAvatar := getDefaultAvatarURL()
+
+	var avatarURL *string
 	err := database.DB.QueryRow(`
-		SELECT id, name, email, created_at 
+		SELECT id, name, email, created_at, avatar_url 
 		FROM users 
 		WHERE id = $1
-	`, userID).Scan(&user.ID, &user.Name, &user.Email, &user.CreatedAt)
+	`, userID).Scan(&user.ID, &user.Name, &user.Email, &user.CreatedAt, &avatarURL)
 
 	if err != nil {
-		http.Error(w, "User not found", http.StatusNotFound)
+		http.Error(w, fmt.Sprintf("User not found: %v", err), http.StatusNotFound)
 		return
 	}
 
-	data := PageData{
-		User: user,
+	if avatarURL != nil && *avatarURL != "" {
+		user.AvatarURL = *avatarURL
+	} else {
+		user.AvatarURL = defaultAvatar
 	}
 
-	profileTmpl.ExecuteTemplate(w, "layout.html", data)
+	flash := r.URL.Query().Get("flash")
+	data := PageData{
+		User:  user,
+		Flash: flash,
+	}
+
+	err = profileTmpl.Lookup("layout").Execute(w, data)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Template error: %v", err), http.StatusInternalServerError)
+	}
+}
+
+func getDefaultAvatarURL() string {
+	return "https://res.cloudinary.com/demo/image/upload/avatar_default.png"
 }
 
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
@@ -66,7 +85,7 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 
 func RegisterPage(w http.ResponseWriter, r *http.Request) {
 	data := PageData{}
-	registerTmpl.ExecuteTemplate(w, "layout.html", data)
+	registerTmpl.Lookup("layout").Execute(w, data)
 }
 
 func RegisterSubmit(w http.ResponseWriter, r *http.Request) {
@@ -81,14 +100,14 @@ func RegisterSubmit(w http.ResponseWriter, r *http.Request) {
 	passwordConfirm := r.FormValue("password_confirm")
 
 	if password != passwordConfirm {
-		registerTmpl.ExecuteTemplate(w, "layout.html", PageData{
+		registerTmpl.Lookup("layout").Execute(w, PageData{
 			Flash: "Passwords don't match",
 			Form:  FormData{"Name": name, "Email": email},
 		})
 		return
 	}
 	if len(password) < 8 {
-		registerTmpl.ExecuteTemplate(w, "layout.html", PageData{
+		registerTmpl.Lookup("layout").Execute(w, PageData{
 			Flash: "The password must contain at least 8 characters",
 			Form:  FormData{"Name": name, "Email": email},
 		})
@@ -109,7 +128,7 @@ func RegisterSubmit(w http.ResponseWriter, r *http.Request) {
 	`, email, hash, name, time.Now()).Scan(&UserID)
 
 	if err != nil {
-		registerTmpl.ExecuteTemplate(w, "layout.html", PageData{
+		registerTmpl.Lookup("layout").Execute(w, PageData{
 			Flash: fmt.Sprintf("Failed to create user: %v", err),
 			Form:  FormData{"Name": name, "Email": email},
 		})
@@ -138,7 +157,7 @@ func LoginPage(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Query().Get("registered") == "1" {
 		data.Flash = "Successfully registered. Enter email and password"
 	}
-	loginTmpl.ExecuteTemplate(w, "layout.html", data)
+	loginTmpl.Lookup("layout").Execute(w, data)
 }
 
 func LoginSubmit(w http.ResponseWriter, r *http.Request) {
@@ -154,7 +173,7 @@ func LoginSubmit(w http.ResponseWriter, r *http.Request) {
 	var hash string
 	err := database.DB.QueryRow("SELECT id, password_hash FROM users WHERE email=$1", email).Scan(&id, &hash)
 	if err != nil {
-		loginTmpl.ExecuteTemplate(w, "layout.html", PageData{
+		loginTmpl.Lookup("layout").Execute(w, PageData{
 			Flash: "Invalid email or password",
 			Form:  FormData{"Email": email},
 		})
@@ -162,7 +181,7 @@ func LoginSubmit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !utils.CheckPasswordHash(password, hash) {
-		loginTmpl.ExecuteTemplate(w, "layout.html", PageData{
+		loginTmpl.Lookup("layout").Execute(w, PageData{
 			Flash: "Invalid email or password",
 			Form:  FormData{"Email": email},
 		})

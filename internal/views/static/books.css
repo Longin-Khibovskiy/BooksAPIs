@@ -32,10 +32,109 @@ h1 {
     display: flex;
     justify-content: center;
 }
+
 .book_title {
     font-weight: bold;
     margin: 8px 0;
 }
+
 .book_author, .book_publisher, .book_rank {
     margin: 4px;
+}
+
+
+.profile-info {
+    max-width: 600px;
+    margin: 20px auto;
+}
+
+.avatar-section {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.avatar-img,
+#avatar-preview {
+    width: 200px !important;
+    height: 200px !important;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: center;
+    border: 3px solid #ddd;
+    margin: 0 auto 15px auto;
+    display: block;
+}
+
+.avatar-upload-form {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.avatar-upload-form input[type="file"] {
+    display: block;
+    margin: 10px auto;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.avatar-upload-form button {
+    background: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 10px 5px;
+}
+
+.avatar-upload-form button:hover {
+    background: #0056b3;
+}
+
+#avatar-canvas {
+    display: block;
+    background: #f0f0f0;
+}
+
+#avatar-editor {
+    margin: 20px 0;
+}
+
+#scale-slider {
+    vertical-align: middle;
+}
+
+.user-details {
+    background: #f5f5f5;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.user-details p {
+    margin: 10px 0;
+}
+
+.logout-btn {
+    background: #dc3545;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+.logout-btn:hover {
+    background: #c82333;
+}
+
+.flash {
+    padding: 10px;
+    margin: 15px 0;
+    border-radius: 5px;
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
 }

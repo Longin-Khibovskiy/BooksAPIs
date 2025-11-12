@@ -6,5 +6,6 @@ type User struct {
 	PasswordHash string
 	Name         string
 	Role         string
+	AvatarURL    string
 	CreatedAt    string
 }

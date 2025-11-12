@@ -1,3 +1,4 @@
+{{ define "layout" }}
 <!doctype html>
 <html lang="en">
 <head>
@@ -6,9 +7,16 @@
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>{{ block "title" . }}Books{{ end }}</title>
-    <link rel="stylesheet" href="/books.css">
+    <link rel="stylesheet" href="/static/books.css">
+    {{ block "scripts" . }}{{ end }}
 </head>
 <body>
+<header>
+    <a href="/books">Books</a>
+    <a href="/login">Login</a>
+    <a href="/register">Register</a>
+    <a href="/profile">Profile</a>
+</header>
 <div class="container">
     {{ if .Flash }}
     <div class="flash">{{ .Flash }}</div>
@@ -17,3 +25,4 @@
 </div>
 </body>
 </html>
+{{ end }}

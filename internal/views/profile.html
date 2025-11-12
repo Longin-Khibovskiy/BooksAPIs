@@ -1,18 +1,56 @@
 {{ define "title" }}Profile{{ end }}
 
+{{ define "scripts" }}
+<script src="/javascript/profile.js"></script>
+{{ end }}
+
 {{ define "content" }}
 <h1>Profile</h1>
 
 <div class="profile-info">
-    <p><strong>ID:</strong> {{ .User.ID }}</p>
-    <p><strong>Name:</strong> {{ .User.Name }}</p>
-    <p><strong>Email:</strong> {{ .User.Email }}</p>
-    <p><strong>Registered:</strong> {{ .User.CreatedAt }}</p>
+    <div class="avatar-section">
+        <div id="avatar-display">
+            <img src="{{ .User.AvatarURL }}" alt="Avatar" class="avatar-img" id="avatar-preview" 
+                 style="width: 200px; height: 200px; object-fit: cover; object-position: center; border-radius: 50%; border: 3px solid #ddd; display: block; margin: 0 auto 15px auto;">
+        </div>
+        
+        <div id="avatar-editor" style="display: none;">
+            <div style="position: relative; width: 300px; height: 300px; margin: 0 auto; border: 2px solid #ddd; overflow: hidden; cursor: move;">
+                <canvas id="avatar-canvas" width="300" height="300"></canvas>
+            </div>
+            <div style="text-align: center; margin-top: 10px;">
+                <label>Scale: </label>
+                <input type="range" id="scale-slider" min="10" max="200" value="100" step="5" style="width: 250px;">
+                <span id="scale-value">100%</span>
+            </div>
+            <div style="text-align: center; margin-top: 10px; color: #666; font-size: 14px;">
+                Drag the image to position it
+            </div>
+        </div>
+        
+        <form action="/profile/upload-avatar" method="post" enctype="multipart/form-data" class="avatar-upload-form" id="upload-form">
+            <input type="file" name="avatar" accept="image/*" id="avatar-input" onchange="initAvatarEditor(event)">
+            <input type="hidden" name="avatar_data" id="avatar-data">
+            <button type="button" id="upload-btn" style="display: none;" onclick="uploadAvatar()">Upload an avatar</button>
+            <button type="button" id="cancel-btn" style="display: none; background: #6c757d;" onclick="cancelEdit()">Cancel</button>
+        </form>
+    </div>
+    
+    <div class="user-details">
+        <p><strong>ID:</strong> {{ .User.ID }}</p>
+        <p><strong>Name:</strong> {{ .User.Name }}</p>
+        <p><strong>Email:</strong> {{ .User.Email }}</p>
+        <p><strong>Registered:</strong> {{ .User.CreatedAt }}</p>
+    </div>
 </div>
+
+{{ if .Flash }}
+<div class="flash">{{ .Flash }}</div>
+{{ end }}
 
 <form action="/logout" method="post">
     <button type="submit" class="logout-btn">Logout</button>
 </form>
 
-<p><a href="/books">← Back to books</a></p>
+<p><a href="/books"><- Back to books</a></p>
 {{ end }}

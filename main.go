@@ -9,6 +9,7 @@ import (
 	"example.com/m/v2/internal/auth"
 	"example.com/m/v2/internal/database"
 	"example.com/m/v2/internal/handlers"
+	"example.com/m/v2/internal/services"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 )
@@ -20,6 +21,10 @@ func main() {
 
 	database.DB = database.Init()
 	defer database.DB.Close()
+
+	if err := services.InitCloudinary(); err != nil {
+		log.Println("Cloudinary not configured, avatar uploads will be disabled:", err)
+	}
 
 	log.Println("Tables are managed via migrations in migrations/ folder")
 
@@ -37,22 +42,29 @@ func main() {
 	router := mux.NewRouter()
 
 	// Auth & Reg
+	fs := http.FileServer(http.Dir("internal/views/static"))
+	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
+
+	js := http.FileServer(http.Dir("internal/views/javascript"))
+	router.PathPrefix("/javascript/").Handler(http.StripPrefix("/javascript/", js))
+
+	stylesheets := http.FileServer(http.Dir("stylesheets"))
+	router.PathPrefix("/stylesheets/").Handler(http.StripPrefix("/stylesheets/", stylesheets))
+
 	router.HandleFunc("/register", auth.RegisterPage).Methods("GET")
 	router.HandleFunc("/register", auth.RegisterSubmit).Methods("POST")
 	router.HandleFunc("/login", auth.LoginPage).Methods("GET")
 	router.HandleFunc("/login", auth.LoginSubmit).Methods("POST")
 	router.HandleFunc("/logout", auth.LogoutHandler).Methods("POST")
 
-	protected := router.PathPrefix("").Subrouter()
-	protected.Use(auth.AuthMiddleware)
-	protected.HandleFunc("/profile", auth.ProfilePage).Methods("GET")
-
-	fs := http.FileServer(http.Dir("internal/views/static"))
-	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
-
 	router.HandleFunc("/", handlers.RedirectToBooks)
 	router.HandleFunc("/books", handlers.GetBooks).Methods("GET")
 	router.HandleFunc("/book/{id}", handlers.GetBookByID).Methods("GET")
+
+	protected := router.PathPrefix("").Subrouter()
+	protected.Use(auth.AuthMiddleware)
+	protected.HandleFunc("/profile", auth.ProfilePage).Methods("GET")
+	protected.HandleFunc("/profile/upload-avatar", auth.UploadAvatarHandler).Methods("POST")
 
 	fmt.Println("Server started on http://localhost:8000")
 	log.Fatal(http.ListenAndServe(":8000", router))

@@ -10,19 +10,31 @@ import (
 )
 
 func GetBooks(w http.ResponseWriter, _ *http.Request) {
-	tmpl, err := template.ParseFiles("internal/views/books.html")
-	if err != nil {
-		http.Error(w, "Error loading template", http.StatusInternalServerError)
-		return
-	}
-
 	books, err := database.GetAllBooks()
 	if err != nil {
 		http.Error(w, "Error database", http.StatusInternalServerError)
 		return
 	}
 
-	tmpl.Execute(w, books)
+	data := struct {
+		Books interface{}
+		Flash string
+	}{
+		Books: books,
+		Flash: "",
+	}
+
+	tmpl, err := template.ParseFiles("internal/views/layout.html", "internal/views/books.html")
+	if err != nil {
+		http.Error(w, "Error loading template: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = tmpl.Lookup("layout").Execute(w, data)
+	if err != nil {
+		http.Error(w, "Error executing template: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func GetBookByID(w http.ResponseWriter, r *http.Request) {
@@ -39,13 +51,39 @@ func GetBookByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl, err := template.ParseFiles("internal/views/book.html")
+	data := struct {
+		Book  interface{}
+		Flash string
+		Title       string
+		Image       string
+		Author      string
+		Publisher   string
+		Rank        int
+		Description string
+		Links       interface{}
+	}{
+		Book:        book,
+		Flash:       "",
+		Title:       book.Title,
+		Image:       book.Image,
+		Author:      book.Author,
+		Publisher:   book.Publisher,
+		Rank:        book.Rank,
+		Description: book.Description,
+		Links:       book.Links,
+	}
+
+	tmpl, err := template.ParseFiles("internal/views/layout.html", "internal/views/book.html")
 	if err != nil {
-		http.Error(w, "Error loading template", http.StatusInternalServerError)
+		http.Error(w, "Error loading template: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	tmpl.Execute(w, book)
+	err = tmpl.Lookup("layout").Execute(w, data)
+	if err != nil {
+		http.Error(w, "Error executing template: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func RedirectToBooks(w http.ResponseWriter, r *http.Request) {

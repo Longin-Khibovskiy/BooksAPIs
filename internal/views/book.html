@@ -1,14 +1,6 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Book</title>
-    <link rel="stylesheet" href="/static/books.css">
-</head>
-<body>
+{{ define "title" }}{{.Title}}{{ end }}
+
+{{ define "content" }}
 <div class="book-card">
     <h1>{{.Title}}</h1>
     <img src="{{.Image}}" alt="{{.Title}}">
@@ -21,5 +13,4 @@
     {{end}}
     <a class="back" href="/books">← Back to list</a>
 </div>
-</body>
-</html>
+{{ end }}

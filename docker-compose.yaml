@@ -39,8 +39,12 @@ services:
       DB_NAME: ${DB_NAME}
       API_KEY: ${API_KEY}
       JWT_SECRET: ${JWT_SECRET}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
     volumes:
       - ./internal/views:/app/internal/views
+      - ./migrations:/app/migrations
     restart: unless-stopped
     logging:
       driver: "json-file"
