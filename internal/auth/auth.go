@@ -25,7 +25,7 @@ type PageData struct {
 func ProfilePage(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value("userID")
 	if userID == nil {
-		http.Error(w, "Not authenticated", http.StatusUnauthorized)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
@@ -85,7 +85,10 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 
 func RegisterPage(w http.ResponseWriter, r *http.Request) {
 	data := PageData{}
-	registerTmpl.Lookup("layout").Execute(w, data)
+	err := registerTmpl.Lookup("layout").Execute(w, data)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Template error: %v", err), http.StatusInternalServerError)
+	}
 }
 
 func RegisterSubmit(w http.ResponseWriter, r *http.Request) {
@@ -157,7 +160,10 @@ func LoginPage(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Query().Get("registered") == "1" {
 		data.Flash = "Successfully registered. Enter email and password"
 	}
-	loginTmpl.Lookup("layout").Execute(w, data)
+	err := loginTmpl.Lookup("layout").Execute(w, data)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Template error: %v", err), http.StatusInternalServerError)
+	}
 }
 
 func LoginSubmit(w http.ResponseWriter, r *http.Request) {
