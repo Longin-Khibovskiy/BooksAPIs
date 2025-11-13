@@ -12,16 +12,9 @@
 </head>
 <body>
 <header>
-    <a href="/books">Books</a>
     {{ if .User }}
+    <a href="/books">Books</a>
     <a href="/profile">Profile</a>
-<!--    <form action="/logout" method="post" style="display: inline;">-->
-<!--        {{ .CSRFToken }}-->
-<!--        <button type="submit" style="background: none; border: none; color: inherit; cursor: pointer; padding: 0; font: inherit;">Logout</button>-->
-<!--    </form>-->
-    {{ else }}
-    <a href="/login">Login</a>
-    <a href="/register">Register</a>
     {{ end }}
 </header>
 <div class="container">

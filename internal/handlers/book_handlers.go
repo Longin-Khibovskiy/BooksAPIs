@@ -109,3 +109,7 @@ func GetBookByID(w http.ResponseWriter, r *http.Request) {
 func RedirectToBooks(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/books", http.StatusFound)
 }
+
+func RedirectToLogin(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/login", http.StatusFound)
+}

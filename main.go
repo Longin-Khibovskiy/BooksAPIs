@@ -60,22 +60,20 @@ func main() {
 	uploads := http.FileServer(http.Dir("uploads"))
 	router.PathPrefix("/uploads/").Handler(http.StripPrefix("/uploads/", uploads))
 
-	router.HandleFunc("/", handlers.RedirectToBooks)
-	router.HandleFunc("/books", handlers.GetBooks).Methods("GET")
-	router.HandleFunc("/book/{id}", handlers.GetBookByID).Methods("GET")
-
-	authRouter := router.PathPrefix("").Subrouter()
-	authRouter.Use(middleware.StrictRateLimit)
-	authRouter.HandleFunc("/register", auth.RegisterPage).Methods("GET")
-	authRouter.HandleFunc("/register", auth.RegisterSubmit).Methods("POST")
-	authRouter.HandleFunc("/login", auth.LoginPage).Methods("GET")
-	authRouter.HandleFunc("/login", auth.LoginSubmit).Methods("POST")
-	authRouter.HandleFunc("/logout", auth.LogoutHandler).Methods("POST")
+	router.HandleFunc("/", handlers.RedirectToLogin)
+	
+	router.HandleFunc("/register", auth.RegisterPage).Methods("GET")
+	router.HandleFunc("/register", auth.RegisterSubmit).Methods("POST")
+	router.HandleFunc("/login", auth.LoginPage).Methods("GET")
+	router.HandleFunc("/login", auth.LoginSubmit).Methods("POST")
 
 	protected := router.PathPrefix("").Subrouter()
 	protected.Use(auth.AuthMiddleware)
+	protected.HandleFunc("/books", handlers.GetBooks).Methods("GET")
+	protected.HandleFunc("/book/{id}", handlers.GetBookByID).Methods("GET")
 	protected.HandleFunc("/profile", auth.ProfilePage).Methods("GET")
 	protected.HandleFunc("/profile/upload-avatar", auth.UploadAvatarHandler).Methods("POST")
+	protected.HandleFunc("/logout", auth.LogoutHandler).Methods("POST")
 
 	csrfKey := []byte(os.Getenv("CSRF_KEY"))
 	if len(csrfKey) == 0 {

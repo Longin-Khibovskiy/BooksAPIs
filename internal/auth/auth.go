@@ -97,10 +97,8 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func RegisterPage(w http.ResponseWriter, r *http.Request) {
-	token := csrf.Token(r)
-	fmt.Printf("DEBUG: CSRF Token length: %d\n", len(token))
 	data := PageData{
-		CSRFToken: token,
+		CSRFToken: csrf.Token(r),
 	}
 	err := registerTmpl.Lookup("layout").Execute(w, data)
 	if err != nil {
