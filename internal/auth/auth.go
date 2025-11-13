@@ -75,10 +75,13 @@ func getDefaultAvatarURL() string {
 
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
-		Name:    "auth_token",
-		Value:   "",
-		Path:    "/",
-		Expires: time.Now().Add(-1 * time.Hour),
+		Name:     "auth_token",
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+		MaxAge:   -1,
 	})
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
@@ -97,10 +100,18 @@ func RegisterSubmit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	name := r.FormValue("name")
-	email := r.FormValue("email")
+	name := utils.SanitizeInput(r.FormValue("name"))
+	email := utils.SanitizeInput(r.FormValue("email"))
 	password := r.FormValue("password")
 	passwordConfirm := r.FormValue("password_confirm")
+
+	if !utils.IsValidEmail(email) {
+		registerTmpl.Lookup("layout").Execute(w, PageData{
+			Flash: "Invalid email format",
+			Form:  FormData{"Name": name, "Email": email},
+		})
+		return
+	}
 
 	if password != passwordConfirm {
 		registerTmpl.Lookup("layout").Execute(w, PageData{
@@ -148,6 +159,8 @@ func RegisterSubmit(w http.ResponseWriter, r *http.Request) {
 		Name:     "auth_token",
 		Value:    tokenString,
 		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
 		Path:     "/",
 		Expires:  time.Now().Add(24 * time.Hour),
 	})
@@ -171,9 +184,17 @@ func LoginSubmit(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
 	}
-	email := r.FormValue("email")
+	email := utils.SanitizeInput(r.FormValue("email"))
 	password := r.FormValue("password")
 	remember := r.FormValue("remember") == "on"
+
+	if !utils.IsValidEmail(email) {
+		loginTmpl.Lookup("layout").Execute(w, PageData{
+			Flash: "Invalid email format",
+			Form:  FormData{"Email": email},
+		})
+		return
+	}
 
 	var id int
 	var hash string
@@ -204,6 +225,8 @@ func LoginSubmit(w http.ResponseWriter, r *http.Request) {
 		Name:     "auth_token",
 		Value:    tokenString,
 		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
 		Path:     "/",
 	}
 	if remember {

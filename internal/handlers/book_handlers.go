@@ -9,19 +9,26 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func GetBooks(w http.ResponseWriter, _ *http.Request) {
-	books, err := database.GetAllBooks()
+func GetBooks(w http.ResponseWriter, r *http.Request) {
+	sortBy := r.URL.Query().Get("sort")
+	if sortBy == "" {
+		sortBy = "rank"
+	}
+
+	books, err := database.GetAllBooks(sortBy)
 	if err != nil {
 		http.Error(w, "Error database", http.StatusInternalServerError)
 		return
 	}
 
 	data := struct {
-		Books interface{}
-		Flash string
+		Books   interface{}
+		Flash   string
+		SortBy  string
 	}{
-		Books: books,
-		Flash: "",
+		Books:  books,
+		Flash:  "",
+		SortBy: sortBy,
 	}
 
 	tmpl, err := template.ParseFiles("internal/views/layout.html", "internal/views/books.html")

@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 
@@ -20,6 +21,9 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 		tokenStr := cookie.Value
 		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			}
 			return secret, nil
 		})
 		if err != nil || !token.Valid {

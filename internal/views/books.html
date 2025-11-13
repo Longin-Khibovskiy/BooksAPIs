@@ -2,6 +2,16 @@
 
 {{ define "content" }}
 <h1>Books of New York Times</h1>
+
+<div style="margin: 20px 0; text-align: center;">
+    <label for="sort">Sort by: </label>
+    <select id="sort" onchange="window.location.href='/books?sort=' + this.value" style="padding: 5px 10px; font-size: 14px;">
+        <option value="rank" {{if eq .SortBy "rank"}}selected{{end}}>Rank</option>
+        <option value="title" {{if eq .SortBy "title"}}selected{{end}}>Title (A-Z)</option>
+        <option value="author" {{if eq .SortBy "author"}}selected{{end}}>Author (A-Z)</option>
+    </select>
+</div>
+
 <div class="cont">
     <div class="book">
         {{range .Books}}
