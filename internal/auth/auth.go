@@ -6,7 +6,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/csrf"
+
 	"example.com/m/v2/internal/database"
+	"example.com/m/v2/internal/middleware"
 	"example.com/m/v2/internal/utils"
 )
 
@@ -17,9 +20,10 @@ var profileTmpl = template.Must(template.ParseFiles("internal/views/layout.html"
 type FormData map[string]interface{}
 
 type PageData struct {
-	Flash string
-	Form  FormData
-	User  interface{}
+	Flash     string
+	Form      FormData
+	User      interface{}
+	CSRFToken string
 }
 
 func ProfilePage(w http.ResponseWriter, r *http.Request) {
@@ -59,8 +63,9 @@ func ProfilePage(w http.ResponseWriter, r *http.Request) {
 
 	flash := r.URL.Query().Get("flash")
 	data := PageData{
-		User:  user,
-		Flash: flash,
+		User:      user,
+		Flash:     flash,
+		CSRFToken: csrf.Token(r),
 	}
 
 	err = profileTmpl.Lookup("layout").Execute(w, data)
@@ -87,7 +92,11 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func RegisterPage(w http.ResponseWriter, r *http.Request) {
-	data := PageData{}
+	token := csrf.Token(r)
+	fmt.Printf("DEBUG: CSRF Token length: %d\n", len(token))
+	data := PageData{
+		CSRFToken: token,
+	}
 	err := registerTmpl.Lookup("layout").Execute(w, data)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Template error: %v", err), http.StatusInternalServerError)
@@ -107,23 +116,26 @@ func RegisterSubmit(w http.ResponseWriter, r *http.Request) {
 
 	if !utils.IsValidEmail(email) {
 		registerTmpl.Lookup("layout").Execute(w, PageData{
-			Flash: "Invalid email format",
-			Form:  FormData{"Name": name, "Email": email},
+			Flash:     "Invalid email format",
+			Form:      FormData{"Name": name, "Email": email},
+			CSRFToken: csrf.Token(r),
 		})
 		return
 	}
 
 	if password != passwordConfirm {
 		registerTmpl.Lookup("layout").Execute(w, PageData{
-			Flash: "Passwords don't match",
-			Form:  FormData{"Name": name, "Email": email},
+			Flash:     "Passwords don't match",
+			Form:      FormData{"Name": name, "Email": email},
+			CSRFToken: csrf.Token(r),
 		})
 		return
 	}
 	if len(password) < 8 {
 		registerTmpl.Lookup("layout").Execute(w, PageData{
-			Flash: "The password must contain at least 8 characters",
-			Form:  FormData{"Name": name, "Email": email},
+			Flash:     "The password must contain at least 8 characters",
+			Form:      FormData{"Name": name, "Email": email},
+			CSRFToken: csrf.Token(r),
 		})
 		return
 	}
@@ -143,11 +155,14 @@ func RegisterSubmit(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		registerTmpl.Lookup("layout").Execute(w, PageData{
-			Flash: fmt.Sprintf("Failed to create user: %v", err),
-			Form:  FormData{"Name": name, "Email": email},
+			Flash:     fmt.Sprintf("Failed to create user: %v", err),
+			Form:      FormData{"Name": name, "Email": email},
+			CSRFToken: csrf.Token(r),
 		})
 		return
 	}
+
+	middleware.LogRegistration(r, email)
 
 	tokenString, err := utils.CreateJWT(UserID)
 	if err != nil {
@@ -169,7 +184,9 @@ func RegisterSubmit(w http.ResponseWriter, r *http.Request) {
 }
 
 func LoginPage(w http.ResponseWriter, r *http.Request) {
-	data := PageData{}
+	data := PageData{
+		CSRFToken: csrf.Token(r),
+	}
 	if r.URL.Query().Get("registered") == "1" {
 		data.Flash = "Successfully registered. Enter email and password"
 	}
@@ -190,8 +207,9 @@ func LoginSubmit(w http.ResponseWriter, r *http.Request) {
 
 	if !utils.IsValidEmail(email) {
 		loginTmpl.Lookup("layout").Execute(w, PageData{
-			Flash: "Invalid email format",
-			Form:  FormData{"Email": email},
+			Flash:     "Invalid email format",
+			Form:      FormData{"Email": email},
+			CSRFToken: csrf.Token(r),
 		})
 		return
 	}
@@ -200,20 +218,26 @@ func LoginSubmit(w http.ResponseWriter, r *http.Request) {
 	var hash string
 	err := database.DB.QueryRow("SELECT id, password_hash FROM users WHERE email=$1", email).Scan(&id, &hash)
 	if err != nil {
+		middleware.LogFailedLogin(r, email)
 		loginTmpl.Lookup("layout").Execute(w, PageData{
-			Flash: "Invalid email or password",
-			Form:  FormData{"Email": email},
+			Flash:     "Invalid email or password",
+			Form:      FormData{"Email": email},
+			CSRFToken: csrf.Token(r),
 		})
 		return
 	}
 
 	if !utils.CheckPasswordHash(password, hash) {
+		middleware.LogFailedLogin(r, email)
 		loginTmpl.Lookup("layout").Execute(w, PageData{
-			Flash: "Invalid email or password",
-			Form:  FormData{"Email": email},
+			Flash:     "Invalid email or password",
+			Form:      FormData{"Email": email},
+			CSRFToken: csrf.Token(r),
 		})
 		return
 	}
+
+	middleware.LogSuccessfulLogin(r, email)
 
 	tokenString, err := utils.CreateJWT(id)
 	if err != nil {
