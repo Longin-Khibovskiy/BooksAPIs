@@ -27,6 +27,12 @@ echo "DB_PORT=5432" >> .env
 echo "DB_USER=user" >> .env
 echo "DB_PASSWORD=password" >> .env
 echo "DB_NAME=booksdb" >> .env
+echo "JWT_SECRET=your_jwt_secret" >> .env
+echo "CSRF_KEY=your_CSRF_KEY" >> .env
+echo "CLOUDINARY_CLOUD_NAME=your_CLOUDINARY_CLOUD_NAME" >> .env
+echo "CLOUDINARY_API_KEY=your_CLOUDINARY_API_KEY" >> .env
+echo "CLOUDINARY_API_SECRET=your_CLOUDINARY_API_SECRET" >> .env
+echo "DEFAULT_AVATAR_URL=your_DEFAULT_AVATAR_URL" >> .env
 docker compose build
 
 # запуск проекта
