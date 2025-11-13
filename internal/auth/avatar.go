@@ -53,6 +53,6 @@ func UploadAvatarHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Printf("✓ Avatar updated successfully for user %v\n", userID)
+	fmt.Printf("— Avatar updated successfully for user %v\n", userID)
 	http.Redirect(w, r, "/profile?flash=Avatar+updated+successfully", http.StatusSeeOther)
 }

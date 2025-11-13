@@ -43,7 +43,7 @@ func InitCloudinary() error {
 	}
 
 	useCloudinary = true
-	log.Printf("✓ Cloudinary initialized successfully (cloud: %s)", cloudName)
+	log.Printf("— Cloudinary initialized successfully (cloud: %s)", cloudName)
 	return nil
 }
 

@@ -88,6 +88,7 @@ func main() {
 		csrf.Secure(false),
 		csrf.Path("/"),
 		csrf.SameSite(csrf.SameSiteStrictMode),
+		csrf.TrustedOrigins([]string{"localhost:8000", "127.0.0.1:8000"}),
 	)
 
 	handler := middleware.Logger(
@@ -99,9 +100,9 @@ func main() {
 	)
 
 	fmt.Println("Server started on http://localhost:8000")
-	fmt.Println("✓ Security Headers enabled")
-	fmt.Println("✓ Rate Limiting enabled (10 req/s)")
-	fmt.Println("✓ CSRF Protection enabled")
-	fmt.Println("✓ Request Logging enabled")
+	fmt.Println("— Security Headers enabled")
+	fmt.Println("— Rate Limiting enabled (10 req/s)")
+	fmt.Println("— CSRF Protection enabled")
+	fmt.Println("— Request Logging enabled")
 	log.Fatal(http.ListenAndServe(":8000", handler))
 }

@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"example.com/m/v2/internal/database"
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 )
 
@@ -21,14 +22,20 @@ func GetBooks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userID := r.Context().Value("userID")
+
 	data := struct {
-		Books   interface{}
-		Flash   string
-		SortBy  string
+		Books     interface{}
+		Flash     string
+		SortBy    string
+		User      interface{}
+		CSRFToken string
 	}{
-		Books:  books,
-		Flash:  "",
-		SortBy: sortBy,
+		Books:     books,
+		Flash:     "",
+		SortBy:    sortBy,
+		User:      userID,
+		CSRFToken: csrf.Token(r),
 	}
 
 	tmpl, err := template.ParseFiles("internal/views/layout.html", "internal/views/books.html")
@@ -58,9 +65,11 @@ func GetBookByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userID := r.Context().Value("userID")
+
 	data := struct {
-		Book  interface{}
-		Flash string
+		Book        interface{}
+		Flash       string
 		Title       string
 		Image       string
 		Author      string
@@ -68,6 +77,8 @@ func GetBookByID(w http.ResponseWriter, r *http.Request) {
 		Rank        int
 		Description string
 		Links       interface{}
+		User        interface{}
+		CSRFToken   string
 	}{
 		Book:        book,
 		Flash:       "",
@@ -78,6 +89,8 @@ func GetBookByID(w http.ResponseWriter, r *http.Request) {
 		Rank:        book.Rank,
 		Description: book.Description,
 		Links:       book.Links,
+		User:        userID,
+		CSRFToken:   csrf.Token(r),
 	}
 
 	tmpl, err := template.ParseFiles("internal/views/layout.html", "internal/views/book.html")
