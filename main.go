@@ -57,6 +57,9 @@ func main() {
 	stylesheets := http.FileServer(http.Dir("stylesheets"))
 	router.PathPrefix("/stylesheets/").Handler(http.StripPrefix("/stylesheets/", stylesheets))
 
+	uploads := http.FileServer(http.Dir("uploads"))
+	router.PathPrefix("/uploads/").Handler(http.StripPrefix("/uploads/", uploads))
+
 	router.HandleFunc("/", handlers.RedirectToBooks)
 	router.HandleFunc("/books", handlers.GetBooks).Methods("GET")
 	router.HandleFunc("/book/{id}", handlers.GetBookByID).Methods("GET")

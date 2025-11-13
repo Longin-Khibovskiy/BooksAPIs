@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gorilla/csrf"
@@ -75,7 +76,11 @@ func ProfilePage(w http.ResponseWriter, r *http.Request) {
 }
 
 func getDefaultAvatarURL() string {
-	return "https://res.cloudinary.com/demo/image/upload/avatar_default.png"
+	defaultURL := os.Getenv("DEFAULT_AVATAR_URL")
+	if defaultURL == "" {
+		return "/static/default-avatar.png"
+	}
+	return defaultURL
 }
 
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {

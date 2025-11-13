@@ -9,10 +9,13 @@
 #### Добавленные паки:
 ```terminaloutput
 go get github.com/gorilla/mux
+go get github.com/gorilla/csrf
 go get github.com/joho/godotenv
 go get github.com/lib/pq
 go get golang.org/x/crypto/bcrypt
 go get github.com/golang-jwt/jwt/v5
+go get github.com/cloudinary/cloudinary-go/v2
+go get golang.org/x/time/rate
 
 ```
 ### Запуск проекта

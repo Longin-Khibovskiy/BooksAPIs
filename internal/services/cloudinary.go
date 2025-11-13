@@ -3,49 +3,60 @@ package services
 import (
 	"context"
 	"fmt"
+	"io"
+	"log"
 	"mime/multipart"
 	"os"
+	"path/filepath"
 
 	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 )
 
 var cld *cloudinary.Cloudinary
+var useCloudinary bool
 
 func InitCloudinary() error {
 	cloudName := os.Getenv("CLOUDINARY_CLOUD_NAME")
 	apiKey := os.Getenv("CLOUDINARY_API_KEY")
 	apiSecret := os.Getenv("CLOUDINARY_API_SECRET")
 
-	if cloudName == "" {
-		return fmt.Errorf("CLOUDINARY_CLOUD_NAME must be provided")
-	}
-	if apiKey == "" {
-		return fmt.Errorf("CLOUDINARY_API_KEY must be provided")
-	}
-	if apiSecret == "" {
-		return fmt.Errorf("CLOUDINARY_API_SECRET must be provided")
+	if cloudName == "" || apiKey == "" || apiSecret == "" {
+		log.Println("Cloudinary not configured - using local storage for avatars")
+		useCloudinary = false
+
+		if err := os.MkdirAll("uploads/avatars", 0755); err != nil {
+			return fmt.Errorf("failed to create uploads directory: %w", err)
+		}
+		return nil
 	}
 
 	var err error
 	cld, err = cloudinary.NewFromParams(cloudName, apiKey, apiSecret)
 	if err != nil {
-		return fmt.Errorf("failed to initialize Cloudinary: %w", err)
+		log.Printf("Failed to initialize Cloudinary: %v - falling back to local storage", err)
+		useCloudinary = false
+		if err := os.MkdirAll("uploads/avatars", 0755); err != nil {
+			return fmt.Errorf("failed to create uploads directory: %w", err)
+		}
+		return nil
 	}
 
-	fmt.Printf("✓ Cloudinary initialized successfully (cloud: %s)\n", cloudName)
+	useCloudinary = true
+	log.Printf("✓ Cloudinary initialized successfully (cloud: %s)", cloudName)
 	return nil
 }
 
 func UploadAvatar(file multipart.File, userID int) (string, error) {
-	if cld == nil {
-		return "", fmt.Errorf("Cloudinary not initialized")
+	if useCloudinary && cld != nil {
+		return uploadToCloudinary(file, userID)
 	}
+	return uploadToLocal(file, userID)
+}
 
+func uploadToCloudinary(file multipart.File, userID int) (string, error) {
 	ctx := context.Background()
 	publicID := fmt.Sprintf("user_%d", userID)
-
-	fmt.Printf("Uploading avatar for user %d to Cloudinary...\n", userID)
 
 	overwrite := true
 	uploadResult, err := cld.Upload.Upload(ctx, file, uploader.UploadParams{
@@ -56,23 +67,34 @@ func UploadAvatar(file multipart.File, userID int) (string, error) {
 	})
 
 	if err != nil {
-		fmt.Printf("✗ Cloudinary upload failed: %v\n", err)
 		return "", fmt.Errorf("cloudinary upload failed: %w", err)
 	}
 
-	fmt.Printf("✓ Avatar uploaded successfully: %s\n", uploadResult.SecureURL)
 	return uploadResult.SecureURL, nil
 }
 
+func uploadToLocal(file io.Reader, userID int) (string, error) {
+	filename := fmt.Sprintf("user_%d.jpg", userID)
+	filePath := filepath.Join("uploads", "avatars", filename)
+
+	outFile, err := os.Create(filePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to create file: %w", err)
+	}
+	defer outFile.Close()
+
+	_, err = io.Copy(outFile, file)
+	if err != nil {
+		return "", fmt.Errorf("failed to save file: %w", err)
+	}
+
+	return fmt.Sprintf("/uploads/avatars/%s", filename), nil
+}
+
 func GetDefaultAvatarURL() string {
-	if cld == nil {
-		return "https://flagstaffatvclub.com/wp-content/uploads/2018/10/Vacancy-1.jpg"
+	defaultURL := os.Getenv("DEFAULT_AVATAR_URL")
+	if defaultURL != "" {
+		return defaultURL
 	}
-
-	cloudName := os.Getenv("CLOUDINARY_CLOUD_NAME")
-	if cloudName == "" {
-		return "https://flagstaffatvclub.com/wp-content/uploads/2018/10/Vacancy-1.jpg"
-	}
-
-	return fmt.Sprintf("https://flagstaffatvclub.com/wp-content/uploads/2018/10/Vacancy-1.jpg")
+	return "/static/default-avatar.png"
 }
