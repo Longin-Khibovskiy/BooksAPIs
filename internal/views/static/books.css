@@ -16,7 +16,7 @@ h1 {
 
 .book {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     row-gap: 12px;
     column-gap: 12px;
 }
@@ -31,6 +31,12 @@ h1 {
     width: 100%;
     display: flex;
     justify-content: center;
+    padding: 4px;
+}
+.img_cont img {
+    border-radius: 8px;
+    width: 100%;
+    height: 280px;
 }
 
 .book_title {
