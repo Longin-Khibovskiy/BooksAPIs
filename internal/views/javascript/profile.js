@@ -130,6 +130,9 @@ function uploadAvatar() {
     finalCanvas.toBlob(function (blob) {
         const formData = new FormData();
         formData.append('avatar', blob, 'avatar.jpg');
+        
+        const csrfToken = document.querySelector('input[name="gorilla.csrf.Token"]').value;
+        formData.append('gorilla.csrf.Token', csrfToken);
 
         fetch('/profile/upload-avatar', {
             method: 'POST',
