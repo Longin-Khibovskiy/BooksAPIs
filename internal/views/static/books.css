@@ -33,6 +33,7 @@ h1 {
     justify-content: center;
     padding: 4px;
 }
+
 .img_cont img {
     border-radius: 8px;
     width: 100%;
@@ -177,4 +178,56 @@ header {
 
 .container {
     margin-top: 24px;
+}
+
+.book_container {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 48px;
+}
+
+.left_book_cont {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.right_book_cont {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+}
+
+.right_book_cont h1 {
+    margin-bottom: 48px;
+}
+
+.book_links_cont {
+    margin-top: 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.book_links_cont a {
+    text-decoration: none;
+    color: black;
+    font-weight: bolder;
+}
+
+.back {
+    width: 120px;
+    margin-top: 80px;
+    text-decoration: none;
+    color: white;
+    padding: 12px;
+    background-color: rgba(29, 0, 49, 0.5);
+    border-radius: 12px;
+    transition: 0.5s;
+}
+
+.back:hover {
+    background-color: rgba(29, 0, 49);
 }

@@ -2,15 +2,24 @@
 
 {{ define "content" }}
 <div class="book-card">
-    <h1>{{.Title}}</h1>
-    <img src="{{.Image}}" alt="{{.Title}}">
-    <h3>{{.Author}}</h3>
-    <p><strong>Publisher:</strong> {{.Publisher}}</p>
-    <p><strong>Rank:</strong> {{.Rank}}</p>
-    <p><strong>Description:</strong> {{.Description}}</p>
-    {{range .Links}}
-    <li class="links"><a href="{{.Url}}" target="_blank">• {{.Name}}</a></li>
-    {{end}}
+    <div class="book_container">
+        <div class="left_book_cont">
+            <img src="{{.Image}}" alt="{{.Title}}">
+        </div>
+        <div class="right_book_cont">
+            <h1>{{.Title}}</h1>
+            <h3>{{.Author}}</h3>
+            <p><strong>Publisher:</strong> {{.Publisher}}</p>
+            <p><strong>Rank:</strong> {{.Rank}}</p>
+            <p><strong>Description:</strong> {{.Description}}</p>
+            <div class="book_links_cont">
+                <h2>Useful links:</h2>
+                {{range .Links}}
+                <a href="{{.Url}}" target="_blank">— {{.Name}}</a>
+                {{end}}
+            </div>
+        </div>
     <a class="back" href="/books">← Back to list</a>
+    </div>
 </div>
 {{ end }}
