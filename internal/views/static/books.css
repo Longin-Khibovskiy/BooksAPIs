@@ -135,6 +135,40 @@ h1 {
     margin: 15px 0;
     border-radius: 5px;
     background: #d4edda;
-    color: #155724;
+    color: rgba(255, 0, 0, 0.5);
     border: 1px solid #c3e6cb;
+}
+
+header {
+    width: 100%;
+    display: flex;
+    background-color: rgba(211, 211, 211, 0.55);
+    padding: 16px;
+}
+
+.header_container {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.header_container a {
+    text-decoration: none;
+    color: black;
+    font-weight: bold;
+    font-size: 24px;
+}
+
+.header_left_cont {
+    display: flex;
+    justify-content: center;
+}
+
+.header_right_container {
+    display: flex;
+    justify-content: right;
+}
+
+.container {
+    margin-top: 24px;
 }
