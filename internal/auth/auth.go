@@ -25,6 +25,7 @@ type PageData struct {
 	Form      FormData
 	User      interface{}
 	CSRFToken string
+	PageCSS   string
 }
 
 func ProfilePage(w http.ResponseWriter, r *http.Request) {
@@ -67,6 +68,7 @@ func ProfilePage(w http.ResponseWriter, r *http.Request) {
 		User:      user,
 		Flash:     flash,
 		CSRFToken: csrf.Token(r),
+		PageCSS:   "profile",
 	}
 
 	err = profileTmpl.Lookup("layout").Execute(w, data)
@@ -99,6 +101,7 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 func RegisterPage(w http.ResponseWriter, r *http.Request) {
 	data := PageData{
 		CSRFToken: csrf.Token(r),
+		PageCSS:   "register",
 	}
 	err := registerTmpl.Lookup("layout").Execute(w, data)
 	if err != nil {
@@ -122,6 +125,7 @@ func RegisterSubmit(w http.ResponseWriter, r *http.Request) {
 			Flash:     "Invalid email format",
 			Form:      FormData{"Name": name, "Email": email},
 			CSRFToken: csrf.Token(r),
+			PageCSS:   "register",
 		})
 		return
 	}
@@ -131,6 +135,7 @@ func RegisterSubmit(w http.ResponseWriter, r *http.Request) {
 			Flash:     "Passwords don't match",
 			Form:      FormData{"Name": name, "Email": email},
 			CSRFToken: csrf.Token(r),
+			PageCSS:   "register",
 		})
 		return
 	}
@@ -139,6 +144,7 @@ func RegisterSubmit(w http.ResponseWriter, r *http.Request) {
 			Flash:     "The password must contain at least 8 characters",
 			Form:      FormData{"Name": name, "Email": email},
 			CSRFToken: csrf.Token(r),
+			PageCSS:   "register",
 		})
 		return
 	}
@@ -161,6 +167,7 @@ func RegisterSubmit(w http.ResponseWriter, r *http.Request) {
 			Flash:     fmt.Sprintf("Failed to create user: %v", err),
 			Form:      FormData{"Name": name, "Email": email},
 			CSRFToken: csrf.Token(r),
+			PageCSS:   "register",
 		})
 		return
 	}
@@ -189,6 +196,7 @@ func RegisterSubmit(w http.ResponseWriter, r *http.Request) {
 func LoginPage(w http.ResponseWriter, r *http.Request) {
 	data := PageData{
 		CSRFToken: csrf.Token(r),
+		PageCSS:   "login",
 	}
 	if r.URL.Query().Get("registered") == "1" {
 		data.Flash = "Successfully registered. Enter email and password"
@@ -213,6 +221,7 @@ func LoginSubmit(w http.ResponseWriter, r *http.Request) {
 			Flash:     "Invalid email format",
 			Form:      FormData{"Email": email},
 			CSRFToken: csrf.Token(r),
+			PageCSS:   "login",
 		})
 		return
 	}
@@ -236,6 +245,7 @@ func LoginSubmit(w http.ResponseWriter, r *http.Request) {
 			Flash:     "Invalid email or password",
 			Form:      FormData{"Email": email},
 			CSRFToken: csrf.Token(r),
+			PageCSS:   "login",
 		})
 		return
 	}

@@ -30,12 +30,14 @@ func GetBooks(w http.ResponseWriter, r *http.Request) {
 		SortBy    string
 		User      interface{}
 		CSRFToken string
+		PageCSS   string
 	}{
 		Books:     books,
 		Flash:     "",
 		SortBy:    sortBy,
 		User:      userID,
 		CSRFToken: csrf.Token(r),
+		PageCSS:   "books",
 	}
 
 	tmpl, err := template.ParseFiles("internal/views/layout.html", "internal/views/books.html")
@@ -79,6 +81,7 @@ func GetBookByID(w http.ResponseWriter, r *http.Request) {
 		Links       interface{}
 		User        interface{}
 		CSRFToken   string
+		PageCSS     string
 	}{
 		Book:        book,
 		Flash:       "",
@@ -91,6 +94,7 @@ func GetBookByID(w http.ResponseWriter, r *http.Request) {
 		Links:       book.Links,
 		User:        userID,
 		CSRFToken:   csrf.Token(r),
+		PageCSS:     "book",
 	}
 
 	tmpl, err := template.ParseFiles("internal/views/layout.html", "internal/views/book.html")

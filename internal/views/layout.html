@@ -8,6 +8,9 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>{{ block "title" . }}Books{{ end }}</title>
     <link rel="stylesheet" href="/static/books.css">
+    {{ if .PageCSS }}
+    <link rel="stylesheet" href="/static/{{ .PageCSS }}.css">
+    {{ end }}
     {{ block "scripts" . }}{{ end }}
 </head>
 <body>
