@@ -12,6 +12,31 @@ h1 {
     display: flex;
     justify-content: center;
     margin: 32px;
+    flex-direction: column;
+}
+
+.books_pagination {
+    margin-top: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.pag_num {
+    margin: 0 4px;
+    text-decoration: none;
+    color: black;
+    transition: 0.2s;
+}
+
+.pag_word {
+    text-decoration: none;
+    color: black;
+    margin: 0 12px;
+}
+
+.pag_num:hover {
+    scale: 1.2;
 }
 
 .book {
