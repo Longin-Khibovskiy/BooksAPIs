@@ -27,4 +27,22 @@
         {{end}}
     </div>
 </div>
+<div style="text-align:center; margin:20px 0;">
+    {{ if gt .Pages 1 }}
+        {{ if gt .Page 1 }}
+            <a href="/books?page={{minus .Page 1}}&sort={{.SortBy}}">Previous</a>
+        {{ end }}
+
+        {{ range $i := until .Pages }}
+            <a href="/books?page={{add $i 1}}&sort={{$.SortBy}}"
+               style="margin:0 5px; {{if eq $.Page (add $i 1)}}font-weight:bold;{{end}}">
+                {{add $i 1}}
+            </a>
+        {{ end }}
+
+        {{ if lt .Page .Pages }}
+            <a href="/books?page={{add .Page 1}}&sort={{.SortBy}}">Next</a>
+        {{ end }}
+    {{ end }}
+</div>
 {{ end }}

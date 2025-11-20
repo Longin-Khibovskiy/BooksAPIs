@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"html/template"
+	"math"
 	"net/http"
 	"strconv"
 
@@ -16,11 +17,50 @@ func GetBooks(w http.ResponseWriter, r *http.Request) {
 		sortBy = "rank"
 	}
 
-	books, err := database.GetAllBooks(sortBy)
+	pageSize := 12
+	page := 1
+	if p := r.URL.Query().Get("page"); p != "" {
+		if num, err := strconv.Atoi(p); err == nil && num > 0 {
+			page = num
+		}
+	}
+
+	var total int
+	err := database.DB.QueryRow("SELECT COUNT(*) FROM books").Scan(&total)
 	if err != nil {
 		http.Error(w, "Error database", http.StatusInternalServerError)
 		return
 	}
+
+	offset := (page - 1) * pageSize
+
+	rows, err := database.DB.Query(`
+		SELECT id, title, author, image, publisher, rank
+		FROM books
+		ORDER BY $1 LIMIT $2 OFFSET $3`, sortBy, pageSize, offset)
+	if err != nil {
+		http.Error(w, "Error database", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	type Book struct {
+		ID        int
+		Title     string
+		Author    string
+		Image     string
+		Publisher string
+		Rank      int
+	}
+
+	var books []Book
+	for rows.Next() {
+		var b Book
+		rows.Scan(&b.ID, &b.Title, &b.Author, &b.Image, &b.Publisher, &b.Rank)
+		books = append(books, b)
+	}
+
+	pages := int(math.Ceil(float64(total) / float64(pageSize)))
 
 	userID := r.Context().Value("userID")
 
@@ -31,6 +71,8 @@ func GetBooks(w http.ResponseWriter, r *http.Request) {
 		User      interface{}
 		CSRFToken string
 		PageCSS   string
+		Page      int
+		Pages     int
 	}{
 		Books:     books,
 		Flash:     "",
@@ -38,9 +80,21 @@ func GetBooks(w http.ResponseWriter, r *http.Request) {
 		User:      userID,
 		CSRFToken: csrf.Token(r),
 		PageCSS:   "books",
+		Page:      page,
+		Pages:     pages,
 	}
 
-	tmpl, err := template.ParseFiles("internal/views/layout.html", "internal/views/books.html")
+	tmpl, err := template.New("layout").Funcs(template.FuncMap{
+		"add":   func(a, b int) int { return a + b },
+		"minus": func(a, b int) int { return a - b },
+		"until": func(n int) []int {
+			arr := make([]int, n)
+			for i := range arr {
+				arr[i] = i
+			}
+			return arr
+		},
+	}).ParseFiles("internal/views/layout.html", "internal/views/books.html")
 	if err != nil {
 		http.Error(w, "Error loading template: "+err.Error(), http.StatusInternalServerError)
 		return
