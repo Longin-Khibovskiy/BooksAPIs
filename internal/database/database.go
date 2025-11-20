@@ -37,38 +37,6 @@ func CountBooks() int {
 	return count
 }
 
-func GetAllBooks(sortBy string) ([]models.Book, error) {
-	orderClause := "ORDER BY rank ASC"
-	switch sortBy {
-	case "rank":
-		orderClause = "ORDER BY rank ASC"
-	case "title":
-		orderClause = "ORDER BY title ASC"
-	case "author":
-		orderClause = "ORDER BY author ASC"
-	default:
-		orderClause = "ORDER BY rank ASC"
-	}
-
-	query := fmt.Sprintf("SELECT id, title, author, description, publisher, image, amazon_url, rank FROM books %s", orderClause)
-	rows, err := DB.Query(query)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var books []models.Book
-	for rows.Next() {
-		var b models.Book
-		if err := rows.Scan(&b.ID, &b.Title, &b.Author, &b.Description, &b.Publisher, &b.Image, &b.AmazonURL, &b.Rank); err != nil {
-			log.Println("Error scanning:", err)
-			continue
-		}
-		books = append(books, b)
-	}
-	return books, nil
-}
-
 func GetBookByID(id int) (*models.Book, error) {
 	var b models.Book
 	err := DB.QueryRow(`

@@ -38,31 +38,3 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
-
-func OptionalAuthMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cookie, err := r.Cookie("auth_token")
-		if err != nil {
-			next.ServeHTTP(w, r)
-			return
-		}
-
-		tokenStr := cookie.Value
-		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-			}
-			return secret, nil
-		})
-		
-		if err == nil && token.Valid {
-			claims := token.Claims.(jwt.MapClaims)
-			userID := int(claims["sub"].(float64))
-			ctx := context.WithValue(r.Context(), "userID", userID)
-			next.ServeHTTP(w, r.WithContext(ctx))
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
-}

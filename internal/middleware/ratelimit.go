@@ -64,9 +64,3 @@ func (rl *RateLimiter) RateLimit(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
-
-func StrictRateLimit(next http.Handler) http.Handler {
-	limiter := NewRateLimiter(1, 3)
-	limiter.CleanupVisitors()
-	return limiter.RateLimit(next)
-}

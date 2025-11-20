@@ -90,11 +90,3 @@ func uploadToLocal(file io.Reader, userID int) (string, error) {
 
 	return fmt.Sprintf("/uploads/avatars/%s", filename), nil
 }
-
-func GetDefaultAvatarURL() string {
-	defaultURL := os.Getenv("DEFAULT_AVATAR_URL")
-	if defaultURL != "" {
-		return defaultURL
-	}
-	return "/static/default-avatar.png"
-}
