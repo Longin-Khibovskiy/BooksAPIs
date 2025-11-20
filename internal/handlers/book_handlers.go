@@ -94,6 +94,30 @@ func GetBooks(w http.ResponseWriter, r *http.Request) {
 			}
 			return arr
 		},
+		"smartPages": func(current, total int) []int {
+			pages := []int{}
+			start := current - 2
+			end := current + 2
+
+			if start < 1 {
+				start = 1
+				end = 5
+			}
+
+			if end > total {
+				end = total
+				start = total - 3
+				if start < 1 {
+					start = 1
+				}
+			}
+
+			for i := start; i <= end; i++ {
+				pages = append(pages, i)
+			}
+
+			return pages
+		},
 	}).ParseFiles("internal/views/layout.html", "internal/views/books.html")
 	if err != nil {
 		http.Error(w, "Error loading template: "+err.Error(), http.StatusInternalServerError)

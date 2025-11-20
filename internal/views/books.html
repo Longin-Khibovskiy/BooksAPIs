@@ -28,20 +28,26 @@
     </div>
     <div class="books_pagination">
         {{ if gt .Pages 1 }}
-        {{ if gt .Page 1 }}
-        <a class="pag_word" href="/books?page={{minus .Page 1}}&sort={{.SortBy}}">Previous</a>
-        {{ end }}
+            <a href="/books?page=1&sort={{.SortBy}}" class="pag_word"><<</a>
 
-        {{ range $i := until .Pages }}
-        <a href="/books?page={{add $i 1}}&sort={{$.SortBy}}" class="pag_num"
-           style="{{if eq $.Page (add $i 1)}} font-weight:bold; font-size: 18px;{{end}}">
-            {{add $i 1}}
-        </a>
-        {{ end }}
+            {{ if gt .Page 1 }}
+                <a href="/books?page={{minus .Page 1}}&sort={{.SortBy}}" class="pag_word"><</a>
+            {{ end }}
 
-        {{ if lt .Page .Pages }}
-        <a class="pag_word" href="/books?page={{add .Page 1}}&sort={{.SortBy}}">Next</a>
-        {{ end }}
+            {{ range $p := smartPages .Page .Pages }}
+                <a href="/books?page={{$p}}&sort={{$.SortBy}}"
+                   class="pag_num"
+                   style="{{if eq $.Page $p}} font-weight:bold; font-size:18px;{{end}}">
+                    {{$p}}
+                </a>
+            {{ end }}
+
+            {{ if lt .Page .Pages }}
+                <a href="/books?page={{add .Page 1}}&sort={{.SortBy}}" class="pag_word">></a>
+            {{ end }}
+
+            <a href="/books?page={{.Pages}}&sort={{.SortBy}}" class="pag_word">>></a>
+
         {{ end }}
     </div>
 </div>
