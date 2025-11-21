@@ -28,20 +28,23 @@
     </div>
     <div class="books_pagination">
         {{ if gt .Pages 1 }}
-        {{ if gt .Page 1 }}
-        <a class="pag_word" href="/booksNYT?page={{minus .Page 1}}&sort={{.SortBy}}">Previous</a>
-        {{ end }}
+            {{ if gt .Page 1 }}
+                <a href="/booksNYT?page=1&sort={{.SortBy}}" class="pag_word"><<</a>
+                <a href="/booksNYT?page={{minus .Page 1}}&sort={{.SortBy}}" class="pag_word"><</a>
+            {{ end }}
 
-        {{ range $i := until .Pages }}
-        <a href="/booksNYT?page={{add $i 1}}&sort={{$.SortBy}}" class="pag_num"
-           style="{{if eq $.Page (add $i 1)}} font-weight:bold; font-size: 18px;{{end}}">
-            {{add $i 1}}
-        </a>
-        {{ end }}
+            {{ range $p := smartPages .Page .Pages }}
+                <a href="/booksNYT?page={{$p}}&sort={{$.SortBy}}"
+                   class="pag_num"
+                   style="{{if eq $.Page $p}} font-weight:bold; font-size:18px;{{end}}">
+                    {{$p}}
+                </a>
+            {{ end }}
 
-        {{ if lt .Page .Pages }}
-        <a class="pag_word" href="/booksNYT?page={{add .Page 1}}&sort={{.SortBy}}">Next</a>
-        {{ end }}
+            {{ if lt .Page .Pages }}
+                <a href="/booksNYT?page={{add .Page 1}}&sort={{.SortBy}}" class="pag_word">></a>
+                <a href="/booksNYT?page={{.Pages}}&sort={{.SortBy}}" class="pag_word">>></a>
+            {{ end }}
         {{ end }}
     </div>
 </div>
