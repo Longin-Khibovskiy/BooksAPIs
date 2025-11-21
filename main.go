@@ -61,7 +61,7 @@ func main() {
 	router.PathPrefix("/uploads/").Handler(http.StripPrefix("/uploads/", uploads))
 
 	router.HandleFunc("/", handlers.RedirectToLogin)
-	
+
 	router.HandleFunc("/register", auth.RegisterPage).Methods("GET")
 	router.HandleFunc("/register", auth.RegisterSubmit).Methods("POST")
 	router.HandleFunc("/login", auth.LoginPage).Methods("GET")
@@ -69,7 +69,7 @@ func main() {
 
 	protected := router.PathPrefix("").Subrouter()
 	protected.Use(auth.AuthMiddleware)
-	protected.HandleFunc("/books", handlers.GetBooks).Methods("GET")
+	protected.HandleFunc("/booksNYT", handlers.GetBooks).Methods("GET")
 	protected.HandleFunc("/book/{id}", handlers.GetBookByID).Methods("GET")
 	protected.HandleFunc("/profile", auth.ProfilePage).Methods("GET")
 	protected.HandleFunc("/profile/upload-avatar", auth.UploadAvatarHandler).Methods("POST")
