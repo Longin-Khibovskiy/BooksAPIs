@@ -5,7 +5,7 @@
 
 <div style="margin: 20px 0; text-align: center;">
     <label for="sort">Sort by: </label>
-    <select id="sort" onchange="window.location.href='/books?sort=' + this.value" style="padding: 5px 10px; font-size: 14px;">
+    <select id="sort" onchange="window.location.href='/booksNYT?sort=' + this.value" style="padding: 5px 10px; font-size: 14px;">
         <option value="rank" {{if eq .SortBy "rank"}}selected{{end}}>Rank</option>
         <option value="title" {{if eq .SortBy "title"}}selected{{end}}>Title (A-Z)</option>
         <option value="author" {{if eq .SortBy "author"}}selected{{end}}>Author (A-Z)</option>
@@ -29,18 +29,18 @@
     <div class="books_pagination">
         {{ if gt .Pages 1 }}
         {{ if gt .Page 1 }}
-        <a class="pag_word" href="/books?page={{minus .Page 1}}&sort={{.SortBy}}">Previous</a>
+        <a class="pag_word" href="/booksNYT?page={{minus .Page 1}}&sort={{.SortBy}}">Previous</a>
         {{ end }}
 
         {{ range $i := until .Pages }}
-        <a href="/books?page={{add $i 1}}&sort={{$.SortBy}}" class="pag_num"
+        <a href="/booksNYT?page={{add $i 1}}&sort={{$.SortBy}}" class="pag_num"
            style="{{if eq $.Page (add $i 1)}} font-weight:bold; font-size: 18px;{{end}}">
             {{add $i 1}}
         </a>
         {{ end }}
 
         {{ if lt .Page .Pages }}
-        <a class="pag_word" href="/books?page={{add .Page 1}}&sort={{.SortBy}}">Next</a>
+        <a class="pag_word" href="/booksNYT?page={{add .Page 1}}&sort={{.SortBy}}">Next</a>
         {{ end }}
         {{ end }}
     </div>
